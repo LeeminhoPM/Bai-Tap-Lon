@@ -1,0 +1,263 @@
+@import url(https://db.onlinewebfonts.com/c/d8436a566897114f1cb5d935780cf174?family=Granjon+LT+W01+Roman);
+@import url(https://db.onlinewebfonts.com/c/fc5925cf1c277171821cde5812096fd1?family=Nicolas+Cochin+W01+Regular);
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    position: relative;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    height: 150vh;
+    background: black;
+    background-image: url("https://wwd.com/wp-content/uploads/2023/06/LADY-95.22-CAMPAIGN-JISOO-Brigitte-Lacombe-3-e1686144261636.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+h1 {
+    margin: 0;
+}
+
+ul {
+    padding: 0;
+    margin: 0;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0;
+    width: 100%;
+    transition: all 0.5s ease-out;
+}
+
+    header.home-top {
+        height: 306px;
+        background-color: transparent;
+    }
+
+    header.default {
+        --default-header-height: 72px;
+        height: var(--default-header-height);
+        background-color: white;
+    }
+
+#header-navbar {
+    --horizontal-padding: 64px;
+    --vertical-padding: 24px;
+    position: relative;
+    padding: var(--vertical-padding) var(--horizontal-padding);
+    margin: 0 40px;
+    height: 100%;
+    background-color: transparent;
+}
+
+#header-logo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    cursor: pointer;
+}
+
+    #header-logo.home-top {
+        cursor: text;
+        text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    #header-logo > h1 {
+        font-family: "Nicolas Cochin W01 Regular", sans-serif;
+        text-align: center;
+        font-size: 20vw;
+        line-height: 0.8;
+        color: white;
+        letter-spacing: 20px;
+        font-weight: 400;
+        transition: all 0.5s ease-out;
+    }
+
+    #header-logo.default > h1 {
+        color: black;
+        letter-spacing: 2px;
+        font-size: 26px;
+    }
+
+#header-menu,
+#header-user {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.5s ease-out;
+    cursor: pointer;
+}
+
+#header-menu {
+    border: 0;
+    background: transparent;
+}
+
+#header-user {
+    width: 12%;
+    right: var(--horizontal-padding);
+}
+
+#header-navbar.home-top #header-user,
+#header-navbar.home-top #header-menu {
+    top: 50px;
+}
+
+    #header-navbar.home-top #header-user i,
+    #header-navbar.home-top #header-menu i {
+        color: white;
+        text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+
+#header-user > ul {
+    display: flex;
+    list-style: none;
+    justify-content: space-between;
+    align-items: center;
+}
+
+    #header-user > ul li {
+        padding: 10px 20px;
+    }
+
+#header-navbar i {
+    color: black;
+    font-size: 19px;
+}
+
+/* Sidebar */
+#header-menu-sidebar {
+    background-color: white;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 0;
+    height: calc(100vh - 40px);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+#sidebar-top-container {
+    margin: 0 8px 0 24px;
+    border-bottom: 1px solid gray;
+}
+
+    #sidebar-top-container > button {
+        text-wrap: nowrap;
+        opacity: 0;
+        border: 0;
+        background-color: transparent;
+        font-size: 19px;
+        padding: 24px 0;
+        cursor: pointer;
+        transition: all 0.3s linear;
+    }
+
+#header-menu-sidebar > ul {
+    list-style: none;
+}
+
+    #header-menu-sidebar > ul li {
+        opacity: 0;
+        padding: 12px 0 8px 0;
+        margin: 0 8px 0 24px;
+        transition: all 0.3s linear;
+    }
+
+        #header-menu-sidebar > ul li a {
+            color: black;
+            text-decoration: none;
+        }
+
+#overlay-all {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    transition: all 0s linear;
+}
+
+    #overlay-all.sidebar-open {
+        backdrop-filter: blur(5px);
+        z-index: 1;
+    }
+
+#header-menu-sidebar.sidebar-open {
+    width: 300px;
+}
+
+    #header-menu-sidebar.sidebar-open button,
+    #header-menu-sidebar.sidebar-open li {
+        opacity: 1;
+    }
+
+#overlay-all.sidebar-close {
+    backdrop-filter: none;
+}
+
+#header-menu-sidebar.sidebar-close {
+    width: 0;
+}
+
+    #header-menu-sidebar.sidebar-close button,
+    #header-menu-sidebar.sidebar-close li {
+        opacity: 0;
+    }
+
+/* user identity dropbar */
+#user-identity {
+    --user-dropbar-height: 100px;
+    position: fixed;
+    right: 2%;
+    transform: translateX(-50%);
+    top: 80px;
+    width: 100px;
+    border-radius: 6px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    background-color: white;
+    transition: all 0.3s ease;
+}
+
+    #user-identity > ul {
+        height: var(--user-dropbar-height);
+        list-style: none;
+    }
+
+        #user-identity > ul li {
+            padding: 12px 0 12px 0;
+            margin: 0 8px 0 8px;
+            text-align: center;
+            transition: all 0.3s linear;
+        }
+
+            #user-identity > ul li a {
+                color: black;
+                text-decoration: none;
+            }
+
+    #user-identity.dropbar-open {
+        height: var(--user-dropbar-height);
+    }
+
+        #user-identity.dropbar-open > ul li {
+            opacity: 1;
+        }
+
+    #user-identity.dropbar-close {
+        height: 0;
+    }
+
+        #user-identity.dropbar-close > ul li {
+            opacity: 0;
+        }
