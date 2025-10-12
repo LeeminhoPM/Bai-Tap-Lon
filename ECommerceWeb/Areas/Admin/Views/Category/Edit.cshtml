@@ -1,0 +1,96 @@
+﻿@model Category
+
+@{
+    ViewBag.Title = "Cập nhật danh mục";
+}
+
+@section naviheader {
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+        </li>
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="~/adminPageAssets/index3.html" class="nav-link">Trang chủ</a>
+        </li>
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="#" class="nav-link">Danh mục</a>
+        </li>
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="#" class="nav-link">Cập nhật</a>
+        </li>
+    </ul>
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Quản lý danh mục</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">Danh mục</a></li>
+                    <li class="breadcrumb-item active">Cập nhật danh mục</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <!-- Default box -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Thông tin danh mục</h3>
+        </div>
+        <div class="card-body">
+            <div class="bs-stepper linear">
+
+                <div class="bs-stepper-content">
+                    <form method="post">
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true)
+                        <input asp-for="CategoryId" hidden />
+                        <!-- your steps content here -->
+                        <div id="logins-part" class="content active dstepper-block" role="tabpanel" aria-labelledby="logins-part-trigger">
+                            <div class="form-group">
+                                <label asp-for="CategoryName"></label>
+                                <input asp-for="CategoryName" class="form-control" placeholder="Tên danh mục">
+                                <span asp-validation-for="CategoryName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="IsActive"></label>
+                                <div>
+                                    <div class="form-check-inline">
+                                        <input type="radio" asp-for="IsActive" value="@true" class="form-check-input">
+                                        <lable class="form-check-label ms-2">Kích hoạt</lable>
+                                    </div>
+                                    <div class="form-check-inline">
+                                        <input type="radio" asp-for="IsActive" value="@false" class="form-check-input">
+                                        <lable class="form-check-label ms-2">Không kích hoạt</lable>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="IsActive" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="CategoryImageUrl"></label>
+                            <input type="file" asp-for="CategoryImageUrl" class="form-control">
+                            <span asp-validation-for="CategoryImageUrl" class="text-danger"></span>
+                        </div>
+                        <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="btn btn-danger">Quay lại</a>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- /.card-body -->
+        <div class="card-footer">
+        </div>
+        <!-- /.card-footer-->
+    </div>
+    <!-- /.card -->
+</section>
+<!-- /.content -->

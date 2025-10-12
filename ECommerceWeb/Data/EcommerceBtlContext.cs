@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using ECommerceWeb.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace ECommerceWeb.Data;
 
-public partial class EcommerceBtlContext : DbContext
+public partial class EcommerceBtlContext : IdentityDbContext
 {
     public EcommerceBtlContext()
     {
@@ -45,6 +47,8 @@ public partial class EcommerceBtlContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Cart>(entity =>
         {
             entity.HasKey(e => e.CartId).HasName("PK__Cart__51BCD7B70DFB92B6");

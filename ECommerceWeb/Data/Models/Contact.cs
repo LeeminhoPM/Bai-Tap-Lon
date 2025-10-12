@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ECommerceWeb.Data;
+namespace ECommerceWeb.Data.Models;
 
 public partial class Contact
 {
