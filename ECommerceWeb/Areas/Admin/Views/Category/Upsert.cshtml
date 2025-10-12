@@ -1,7 +1,7 @@
 ﻿@model Category
 
 @{
-    ViewBag.Title = "Cập nhật danh mục";
+    ViewBag.Title = "Thêm mới danh mục";
 }
 
 @section naviheader {
@@ -16,7 +16,7 @@
             <a href="#" class="nav-link">Danh mục</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
-            <a href="#" class="nav-link">Cập nhật</a>
+            <a href="#" class="nav-link">@(Model.CategoryId == 0 ? "Thêm mới" : "Cập nhật")</a>
         </li>
     </ul>
 }
@@ -31,7 +31,7 @@
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item"><a href="#">Danh mục</a></li>
-                    <li class="breadcrumb-item active">Cập nhật danh mục</li>
+                    <li class="breadcrumb-item active">@(Model.CategoryId == 0 ? "Thêm mới" : "Cập nhật") danh mục</li>
                 </ol>
             </div>
         </div>
@@ -49,10 +49,11 @@
             <div class="bs-stepper linear">
 
                 <div class="bs-stepper-content">
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true)
                         <input asp-for="CategoryId" hidden />
+                        <input asp-for="CategoryImageUrl" hidden />
                         <!-- your steps content here -->
                         <div id="logins-part" class="content active dstepper-block" role="tabpanel" aria-labelledby="logins-part-trigger">
                             <div class="form-group">
@@ -77,11 +78,10 @@
                         </div>
                         <div class="form-group">
                             <label asp-for="CategoryImageUrl"></label>
-                            <input type="file" asp-for="CategoryImageUrl" class="form-control">
-                            <span asp-validation-for="CategoryImageUrl" class="text-danger"></span>
+                            <input type="file" name="file" class="form-control">
                         </div>
                         <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="btn btn-danger">Quay lại</a>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="submit" class="btn btn-primary">@(Model.CategoryId == 0 ? "Thêm mới" : "Cập nhật")</button>
                     </form>
                 </div>
             </div>

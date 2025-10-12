@@ -20,7 +20,8 @@
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
-    <Folder Include="wwwroot\adminPageAssets\" />
+    <Folder Include="wwwroot\images\category\" />
+    <Folder Include="wwwroot\layout\adminPageAssets\" />
   </ItemGroup>
 
 </Project>

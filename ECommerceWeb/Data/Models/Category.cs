@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,6 +18,7 @@ public partial class Category
 
     [Required(ErrorMessage = "Mục này không được để trống")]
     [Display(Name = "Ảnh danh mục")]
+    [ValidateNever]
     public string CategoryImageUrl { get; set; } = null!;
 
     [Required(ErrorMessage = "Mục này không được để trống")]

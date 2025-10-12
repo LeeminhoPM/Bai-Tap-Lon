@@ -7,11 +7,13 @@ namespace ECommerceWeb.Areas.Admin.Controllers
     [Area("Admin")]
     public class CategoryController : Controller
     {
-        private EcommerceBtlContext _db;
+        private readonly EcommerceBtlContext _db;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public CategoryController(EcommerceBtlContext db)
+        public CategoryController(EcommerceBtlContext db, IWebHostEnvironment webHostEnvironment)
         {
             _db = db;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Index()
@@ -20,28 +22,13 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             return View(itemList);
         }
 
-        public IActionResult Add()
+        public IActionResult Upsert(int? id)
         {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Add(Category obj)
-        {
-            if (ModelState.IsValid)
+            if (id == null || id == 0)
             {
-                obj.CreatedDate = DateTime.Now;
-                _db.Categories.Add(obj);
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+                return View(new Category());
             }
-            return View();
-        }
-
-        public IActionResult Edit(int? id)
-        {
-            if (id != null)
+            else
             {
                 Category? categoryFromDb = _db.Categories.FirstOrDefault(u => u.CategoryId == id);
                 if (categoryFromDb != null)
@@ -50,21 +37,58 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 }
                 return NotFound();
             }
-            return NotFound();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(Category obj)
+        public IActionResult Upsert(Category obj, IFormFile? file)
         {
             if (ModelState.IsValid)
             {
+                // Địa chỉ của thư mục wwwroot
+                string wwwRootPath = _webHostEnvironment.WebRootPath;
+                if (file != null)
+                {
+                    // Tên file mới = Id độc nhất + đuôi file (.jpg, .png, .jpeg, ...)
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    // Địa chỉ của thư mục sẽ được copy ảnh sang
+                    string categoryPath = Path.Combine(wwwRootPath, @"images\category");
+
+                    if (!string.IsNullOrEmpty(obj.CategoryImageUrl))
+                    {
+                        // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
+                        var oldImagePath = Path.Combine(wwwRootPath, obj.CategoryImageUrl.TrimStart('\\'));
+
+                        // Nếu có rồi thì xóa luôn cái cũ
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    // Copy ảnh vừa chọn vào thư mục
+                    using (var fileStream = new FileStream(Path.Combine(categoryPath, fileName), FileMode.Create))
+                    {
+                        file.CopyTo(fileStream);
+                    }
+
+                    // Gán ImageUrl = đường dẫn của ảnh vừa copy
+                    obj.CategoryImageUrl = @"\images\category\" + fileName;
+                }
+
                 obj.CreatedDate = DateTime.Now;
-                _db.Categories.Update(obj);
+                if (obj.CategoryId == 0)
+                {
+                    _db.Categories.Add(obj);
+                }
+                else
+                {
+                    _db.Categories.Update(obj);
+                }
                 _db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            return View();
+            return View(obj);
         }
 
         public IActionResult Delete(int? id)

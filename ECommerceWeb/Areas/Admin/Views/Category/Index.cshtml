@@ -6,7 +6,7 @@
             <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
-            <a href="~/adminPageAssets/index3.html" class="nav-link">Home</a>
+            <a href="~/layout/adminPageAssets/index3.html" class="nav-link">Home</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
             <a href="#" class="nav-link">Danh mục</a>
@@ -39,7 +39,7 @@
             <h3 class="card-title">Danh sách danh mục</h3>
 
             <div class="card-tools">
-                <a asp-area="Admin" asp-action="Add" asp-controller="Category" class="btn btn-primary">Thêm mới</a>
+                <a asp-area="Admin" asp-action="Upsert" asp-controller="Category" class="btn btn-primary">Thêm mới</a>
             </div>
         </div>
         <div class="card-body">
@@ -47,12 +47,12 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>STT</th>
-                        <th>Tên danh mục</th>
-                        <th>Ảnh danh mục</th>
-                        <th>Hoạt động</th>
-                        <th>Ngày tạo</th>
-                        <th></th>
+                        <th width="10%">STT</th>
+                        <th width="25%">Tên danh mục</th>
+                        <th width="25%">Ảnh danh mục</th>
+                        <th width="10%">Hoạt động</th>
+                        <th width="15%">Ngày tạo</th>
+                        <th width="15%"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,11 +63,13 @@
                             <tr id="trow-@item.CategoryId">
                                 <td>@item.CategoryId</td>
                                 <td>@item.CategoryName</td>
-                                <td>@item.CategoryImageUrl</td>
+                                <td>
+                                    <img src="@item.CategoryImageUrl" class="rounded img-fluid object-fit-contain" />    
+                                </td>
                                 <td>@item.IsActive</td>
                                 <td>@item.CreatedDate</td>
                                 <td>
-                                    <a asp-area="Admin" asp-controller="Category" asp-action="Edit" asp-route-id="@item.CategoryId" class="btn btn-primary">
+                                    <a asp-area="Admin" asp-controller="Category" asp-action="Upsert" asp-route-id="@item.CategoryId" class="btn btn-primary">
                                         <i class="bi bi-pencil-square"></i> Sửa
                                     </a>
                                     <a asp-action="Index" data-id="@item.CategoryId" class="btn btn-danger my-btn-delete">
