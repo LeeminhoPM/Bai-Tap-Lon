@@ -21,6 +21,7 @@
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
     <Folder Include="wwwroot\images\category\" />
+    <Folder Include="wwwroot\images\subCategory\" />
     <Folder Include="wwwroot\layout\adminPageAssets\" />
   </ItemGroup>
 

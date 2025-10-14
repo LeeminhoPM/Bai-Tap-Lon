@@ -1,7 +1,7 @@
-﻿@model List<Category>
+﻿@model List<SubCategory>
 
 @{
-    ViewBag.Title = "Danh mục";
+    ViewBag.Title = "Danh mục con";
 }
 
 @section naviheader {
@@ -43,7 +43,7 @@
             <h3 class="card-title">Danh sách @ViewBag.Title</h3>
 
             <div class="card-tools">
-                <a asp-area="Admin" asp-action="Upsert" asp-controller="Category" class="btn btn-primary">Thêm mới</a>
+                <a asp-action="Upsert" class="btn btn-primary">Thêm mới</a>
             </div>
         </div>
         <div class="card-body">
@@ -52,8 +52,9 @@
                 <thead>
                     <tr>
                         <th width="10%">STT</th>
-                        <th width="25%">Tên danh mục</th>
-                        <th width="25%">Ảnh danh mục</th>
+                        <th width="20%">Tên danh mục</th>
+                        <th width="20%">Ảnh danh mục</th>
+                        <th width="10%">Mã danh mục cha</th>
                         <th width="10%">Hoạt động</th>
                         <th width="15%">Ngày tạo</th>
                         <th width="15%"></th>
@@ -64,19 +65,20 @@
                     {
                         @foreach (var item in Model)
                         {
-                            <tr id="trow-@item.CategoryId">
-                                <td>@item.CategoryId</td>
-                                <td>@item.CategoryName</td>
+                            <tr id="trow-@item.SubCategoryId">
+                                <td>@item.SubCategoryId</td>
+                                <td>@item.SubCategoryName</td>
                                 <td>
-                                    <img src="@item.CategoryImageUrl" class="rounded img-fluid object-fit-contain" />    
+                                    <img src="@item.SubCategoryImageUrl" class="rounded img-fluid object-fit-contain" />
                                 </td>
+                                <td>@item.CategoryId</td>
                                 <td>@item.IsActive</td>
                                 <td>@item.CreatedDate.ToString("dd/MM/yyyy")</td>
                                 <td>
-                                    <a asp-area="Admin" asp-controller="Category" asp-action="Upsert" asp-route-id="@item.CategoryId" class="btn btn-primary">
+                                    <a asp-action="Upsert" asp-route-id="@item.SubCategoryId" class="btn btn-primary">
                                         <i class="bi bi-pencil-square"></i> Sửa
                                     </a>
-                                    <a asp-action="Index" data-id="@item.CategoryId" class="btn btn-danger my-btn-delete">
+                                    <a asp-action="Index" data-id="@item.SubCategoryId" class="btn btn-danger my-btn-delete">
                                         <i class="bi bi-trash"></i> Xóa
                                     </a>
                                 </td>
@@ -86,7 +88,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="4">Không có bản ghi nào</td>
+                            <td colspan="7">Không có bản ghi nào</td>
                         </tr>
                     }
                 </tbody>
@@ -100,7 +102,6 @@
     <!-- /.card -->
 </section>
 <!-- /.content -->
-
 @section scripts {
     <script>
         $(document).ready(function () {
@@ -109,7 +110,7 @@
                 var conf = confirm("Bạn muốn xóa bản ghi này không");
                 if (conf == true) {
                     $.ajax({
-                        url: "/Admin/Category/Delete",
+                        url: "/Admin/SubCategory/Delete",
                         type: "POST",
                         data: { id: id },
                         success: function(rs) {

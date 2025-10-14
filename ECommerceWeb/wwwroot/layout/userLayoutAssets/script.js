@@ -49,6 +49,7 @@ $(document).ready(function () {
         );
         $("#user-identity").css("transition-delay", "0s");
         $("#user-identity > ul li").css("transition-delay", "0.3s");
+        isOpen = true;
     }
     function userDropbarClose() {
         $("#user-identity, #user-identity.dropbar-open > ul li").removeClass(
@@ -59,15 +60,14 @@ $(document).ready(function () {
         );
         $("#user-identity").css("transition-delay", "0.3s");
         $("#user-identity > ul li").css("transition-delay", "0s");
+        isOpen = false;
     }
 
     $("#user-toggle-btn").click(function () {
         if (!isOpen) {
             userDropbarOpen();
-            isOpen = true;
         } else {
             userDropbarClose();
-            isOpen = false;
         }
     });
 });

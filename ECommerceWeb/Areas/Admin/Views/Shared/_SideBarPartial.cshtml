@@ -92,9 +92,15 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="~/adminPageAssets/index.html" class="nav-link">
+                        <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Danh mục</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a asp-area="Admin" asp-controller="SubCategory" asp-action="Index" class="nav-link">
+                            <i class="far fa-circle nav-icon"></i>
+                            <p>Danh mục con</p>
                         </a>
                     </li>
                     <li class="nav-item">

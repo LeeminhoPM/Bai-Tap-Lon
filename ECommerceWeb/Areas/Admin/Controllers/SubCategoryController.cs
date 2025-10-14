@@ -1,16 +1,18 @@
 ﻿using ECommerceWeb.Data;
-using Microsoft.AspNetCore.Mvc;
 using ECommerceWeb.Data.Models;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ECommerceWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class CategoryController : Controller
+    public class SubCategoryController : Controller
     {
         private readonly EcommerceBtlContext _db;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public CategoryController(EcommerceBtlContext db, IWebHostEnvironment webHostEnvironment)
+        public SubCategoryController(EcommerceBtlContext db, IWebHostEnvironment webHostEnvironment)
         {
             _db = db;
             _webHostEnvironment = webHostEnvironment;
@@ -18,22 +20,23 @@ namespace ECommerceWeb.Areas.Admin.Controllers
 
         public IActionResult Index()
         {
-            List<Category> itemList = _db.Categories.OrderByDescending(x => x.CategoryId).ToList();
-            return View(itemList);
+            List<SubCategory> items = _db.SubCategories.OrderByDescending(x => x.SubCategoryId).ToList();
+            return View(items);
         }
 
         public IActionResult Upsert(int? id)
         {
+            ViewBag.CategoryOptions = new SelectList(_db.Categories, "CategoryId", "CategoryName");
             if (id == null || id == 0)
             {
-                return View(new Category());
+                return View(new SubCategory());
             }
             else
             {
-                Category? categoryFromDb = _db.Categories.FirstOrDefault(u => u.CategoryId == id);
-                if (categoryFromDb != null)
+                SubCategory? subCategoryFromDb = _db.SubCategories.FirstOrDefault(u => u.SubCategoryId == id);
+                if (subCategoryFromDb != null)
                 {
-                    return View(categoryFromDb);
+                    return View(subCategoryFromDb);
                 }
                 return NotFound();
             }
@@ -41,8 +44,9 @@ namespace ECommerceWeb.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Upsert(Category obj, IFormFile? file)
+        public IActionResult Upsert(SubCategory obj, IFormFile? file)
         {
+            Console.WriteLine(ModelState.IsValid);
             if (ModelState.IsValid)
             {
                 // Địa chỉ của thư mục wwwroot
@@ -52,12 +56,12 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                     // Tên file mới = Id độc nhất + đuôi file (.jpg, .png, .jpeg, ...)
                     string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                     // Địa chỉ của thư mục sẽ được copy ảnh sang
-                    string categoryPath = Path.Combine(wwwRootPath, @"images\category");
+                    string categoryPath = Path.Combine(wwwRootPath, @"images\subCategory");
 
-                    if (!string.IsNullOrEmpty(obj.CategoryImageUrl))
+                    if (!string.IsNullOrEmpty(obj.SubCategoryImageUrl))
                     {
                         // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                        var oldImagePath = Path.Combine(wwwRootPath, obj.CategoryImageUrl.TrimStart('\\'));
+                        var oldImagePath = Path.Combine(wwwRootPath, obj.SubCategoryImageUrl.TrimStart('\\'));
 
                         // Nếu có rồi thì xóa luôn cái cũ
                         if (System.IO.File.Exists(oldImagePath))
@@ -73,17 +77,17 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                     }
 
                     // Gán ImageUrl = đường dẫn của ảnh vừa copy
-                    obj.CategoryImageUrl = @"\images\category\" + fileName;
+                    obj.SubCategoryImageUrl = @"\images\subCategory\" + fileName;
                 }
 
                 obj.CreatedDate = DateTime.Now;
-                if (obj.CategoryId == 0)
+                if (obj.SubCategoryId == 0)
                 {
-                    _db.Categories.Add(obj);
+                    _db.SubCategories.Add(obj);
                 }
                 else
                 {
-                    _db.Categories.Update(obj);
+                    _db.SubCategories.Update(obj);
                 }
                 _db.SaveChanges();
                 return RedirectToAction("Index");
@@ -95,10 +99,10 @@ namespace ECommerceWeb.Areas.Admin.Controllers
         {
             if (id != null)
             {
-                Category? categoryFromDb = _db.Categories.FirstOrDefault(u => u.CategoryId == id);
-                if (categoryFromDb != null)
+                SubCategory? subCategoryFromDb = _db.SubCategories.FirstOrDefault(u => u.SubCategoryId == id);
+                if (subCategoryFromDb != null)
                 {
-                    _db.Categories.Remove(categoryFromDb);
+                    _db.SubCategories.Remove(subCategoryFromDb);
                     _db.SaveChanges();
                     return Json(new { success = true });
                 }

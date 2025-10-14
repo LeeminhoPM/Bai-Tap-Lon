@@ -1,7 +1,7 @@
-﻿@model Category
+﻿@model SubCategory
 
 @{
-    ViewBag.Title = "Danh mục";
+    ViewBag.Title = "Danh mục con";
 }
 
 @section naviheader {
@@ -26,7 +26,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1>Quản lý @ViewBag.Title</h1>
+                <h1>Quản lý danh mục</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -52,14 +52,14 @@
                     <form method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true)
-                        <input asp-for="CategoryId" hidden />
-                        <input asp-for="CategoryImageUrl" hidden />
+                        <input asp-for="SubCategoryId" hidden />
+                        <input asp-for="SubCategoryImageUrl" hidden />
                         <!-- your steps content here -->
                         <div id="logins-part" class="content active dstepper-block" role="tabpanel" aria-labelledby="logins-part-trigger">
                             <div class="form-group">
-                                <label asp-for="CategoryName"></label>
-                                <input asp-for="CategoryName" class="form-control" placeholder="Tên danh mục">
-                                <span asp-validation-for="CategoryName" class="text-danger"></span>
+                                <label asp-for="SubCategoryName"></label>
+                                <input asp-for="SubCategoryName" class="form-control" placeholder="Tên danh mục">
+                                <span asp-validation-for="SubCategoryName" class="text-danger"></span>
                             </div>
                             <div class="form-group">
                                 <label asp-for="IsActive"></label>
@@ -77,14 +77,21 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label asp-for="CategoryId"></label>
+                            <select asp-for="CategoryId" asp-items="@ViewBag.CategoryOptions" class="form-select">
+                                <option disabled selected>Open this select menu</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
                             <div class="input-group">
                                 <div class="custom-file">
-                                    <label asp-for="CategoryImageUrl" class="custom-file-label"></label>
+                                    <label asp-for="SubCategoryImageUrl" class="custom-file-label"></label>
                                     <input type="file" name="file" class="custom-file-input">
                                 </div>
                             </div>
                         </div>
-                        <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="btn btn-danger">Quay lại</a>
+                        <a asp-action="Index" class="btn btn-danger">Quay lại</a>
                         <button type="submit" class="btn btn-primary">@(Model.CategoryId == 0 ? "Thêm mới" : "Cập nhật")</button>
                     </form>
                 </div>
