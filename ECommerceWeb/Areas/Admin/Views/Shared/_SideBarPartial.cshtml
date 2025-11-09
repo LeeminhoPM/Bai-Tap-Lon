@@ -55,12 +55,12 @@
                     </li>
                 </ul> *@
             </li>
-            <li class="nav-item">
+            @* <li class="nav-item">
                 <a href="/news" class="nav-link">
                     <i class="nav-icon fas fa-th"></i>
                     <p>
                         Tin tức
-                        @* <span class="right badge badge-danger">New</span> *@
+                        <span class="right badge badge-danger">New</span>
                     </p>
                 </a>
             </li>
@@ -69,7 +69,7 @@
                     <i class="nav-icon fas fa-th"></i>
                     <p>
                         Bài viết
-                        @* <span class="right badge badge-danger">New</span> *@
+                        <span class="right badge badge-danger">New</span>
                     </p>
                 </a>
             </li>
@@ -78,10 +78,10 @@
                     <i class="nav-icon fas fa-th"></i>
                     <p>
                         Quảng cáo
-                        @* <span class="right badge badge-danger">New</span> *@
+                        <span class="right badge badge-danger">New</span>
                     </p>
                 </a>
-            </li>
+            </li> *@
             <li class="nav-item">
                 <a href="#" class="nav-link">
                     <i class="nav-icon fas fa-tachometer-alt"></i>
@@ -104,7 +104,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="~/adminPageAssets/index2.html" class="nav-link">
+                        <a asp-area="Admin" asp-controller="Product" asp-action="Index" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Sản phẩm</p>
                         </a>

@@ -1,5 +1,4 @@
-﻿@model List<Category>
-
+﻿@model IPagedList<Category>
 @{
     ViewBag.Title = "Danh mục";
 }
@@ -44,19 +43,35 @@
 
             <div class="card-tools">
                 <a asp-area="Admin" asp-action="Upsert" asp-controller="Category" class="btn btn-primary">Thêm mới</a>
+                <a asp-area="Admin" asp-action="Upsert" asp-controller="Category" id="delete-all-btn" class="btn btn-danger">Xóa lựa chọn</a>
             </div>
         </div>
         <div class="card-body">
-
+            <div class="row">
+                <div class="col-6">
+                    @using(Html.BeginForm("Index", "Category", FormMethod.Get, new{}))
+                    {
+                        <div class="input-group input-group-sm">
+                            @Html.TextBox("searchText", new { })
+                            <span class="input-group-append">
+                                <button class="btn btn-info btn-flat" type="submit">Tìm kiếm</button>
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th width="10%">STT</th>
-                        <th width="25%">Tên danh mục</th>
-                        <th width="25%">Ảnh danh mục</th>
-                        <th width="10%">Hoạt động</th>
-                        <th width="15%">Ngày tạo</th>
-                        <th width="15%"></th>
+                        <th>
+                            <input type="checkbox" id="select-all-cbox" />
+                        </th>
+                        <th class="text-center">STT</th>
+                        <th class="text-center">Tên danh mục</th>
+                        <th class="text-center">Ảnh danh mục</th>
+                        <th class="text-center">Hoạt động</th>
+                        <th class="text-center">Ngày tạo</th>
+                        <th class="text-center"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,14 +80,21 @@
                         @foreach (var item in Model)
                         {
                             <tr id="trow-@item.CategoryId">
-                                <td>@item.CategoryId</td>
-                                <td>@item.CategoryName</td>
                                 <td>
-                                    <img src="@item.CategoryImageUrl" class="rounded img-fluid object-fit-contain" />    
+                                    <input type="checkbox" class="select-input" value="@item.CategoryId" />
                                 </td>
-                                <td>@item.IsActive</td>
-                                <td>@item.CreatedDate.ToString("dd/MM/yyyy")</td>
-                                <td>
+                                <td class="text-center">@item.CategoryId</td>
+                                <td class="text-center">@item.CategoryName</td>
+                                <td class="text-center">
+                                    <img width="100" src="@item.CategoryImageUrl" class="rounded img-fluid object-fit-contain" />
+                                </td>
+                                <td class="text-center">
+                                    <a data-id="@item.CategoryId" class="my-active-btn">
+                                        @(item.IsActive? Html.Raw("<i class=\"bi bi-check-lg text-success\" style=\" -webkit-text-stroke: 1px; \"></i>") : Html.Raw("<i class=\"bi bi-x-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>"))
+                                    </a>
+                                </td>
+                                <td class="text-center">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center">
                                     <a asp-area="Admin" asp-controller="Category" asp-action="Upsert" asp-route-id="@item.CategoryId" class="btn btn-primary">
                                         <i class="bi bi-pencil-square"></i> Sửa
                                     </a>
@@ -91,6 +113,17 @@
                     }
                 </tbody>
             </table>
+
+            <div class="row mt-4">
+                <div class="col-12" style="text-align:center">
+                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, pageSize = 10 }), 
+                    new PagedListRenderOptions(){
+                        UlElementClasses = new[] { "pagination", "justify-content-center" },
+                        LiElementClasses = new string[] { "page-item" },
+                        PageClasses = new string[] { "page-link" }
+                    })
+                </div>
+            </div>
         </div>
         <!-- /.card-body -->
         <div class="card-footer">
@@ -100,10 +133,57 @@
     <!-- /.card -->
 </section>
 <!-- /.content -->
-
 @section scripts {
     <script>
         $(document).ready(function () {
+            $("body").on("click", "#delete-all-btn", function(e) {
+                e.preventDefault();
+                var str = "";
+                var checkboxs = $(this).parents(".card").find("tr td input:checkbox");
+                var i = 0;
+                checkboxs.each(function() {
+                    if (this.checked) {
+                        checkboxs.attr("selected", "checked");
+                        if (i === 0) {
+                            str += $(this).val();
+                        } else {
+                            str += ", " + $(this).val();
+                        }
+                        i++;
+                    } else {
+                        checkboxs.attr("selected", "");
+                    }
+                });
+                if (str.length > 0) {
+                    var conf = confirm("Bạn có muốn xóa bản ghi này không");
+                    if (conf === true) {
+                        $.ajax({
+                            url: "/Admin/Category/DeleteAll",
+                            type: "POST",
+                            data: {ids : str },
+                            success: function(rs) {
+                                if (rs.success) {
+                                    location.reload();
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            $("body").on("change", "#select-all-cbox", function() {
+                var checkStatus = this.checked;
+                var checkboxs = $(this).parents(".card-body").find("tr td input:checkbox");
+                checkboxs.each(function() {
+                    this.checked = checkStatus;
+                    if (this.checked) {
+                        checkboxs.attr("selected", "checked");
+                    } else {
+                        checkboxs.attr("selected", "");
+                    }
+                });
+            });
+
             $("body").on("click", ".my-btn-delete", function () {
                 var id = $(this).data("id");
                 var conf = confirm("Bạn muốn xóa bản ghi này không");
@@ -122,6 +202,26 @@
                         }
                     });
                 }
+            });
+
+            $("body").on("click", ".my-active-btn", function () {
+                var id = $(this).data("id");
+                var btn = $(this);
+                $.ajax({
+                    url: "/Admin/Category/IsActive",
+                    type: "POST",
+                    data: { id: id },
+                    success: function(rs) {
+                        if (rs.success) {
+                            if (rs.IsActive) {
+                                btn.html("<i class=\"bi bi-check-lg text-success\" style=\" -webkit-text-stroke: 1px; \"></i>");
+                            }
+                            else {
+                                btn.html("<i class=\"bi bi-check-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>");
+                            }
+                        }
+                    }
+                });
             });
         });
     </script>

@@ -77,11 +77,12 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label asp-for="CategoryImageUrl"></label>
                             <div class="input-group">
-                                <div class="custom-file">
-                                    <label asp-for="CategoryImageUrl" class="custom-file-label"></label>
-                                    <input type="file" name="file" class="custom-file-input">
-                                </div>
+                                <label for="customFile" class="custom-file-label">
+                                    @(Model.CategoryImageUrl == null ? "Chọn file" : Model.CategoryImageUrl.ToString())
+                                </label>
+                                <input type="file" id="customFile" name="file" class="custom-file-input">
                             </div>
                         </div>
                         <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="btn btn-danger">Quay lại</a>

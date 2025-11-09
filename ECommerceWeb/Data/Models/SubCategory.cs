@@ -20,17 +20,17 @@ public partial class SubCategory
     [Display(Name = "Ảnh thư mục con")]
     public string SubCategoryImageUrl { get; set; } = null!;
 
-    [ForeignKey("Category")]
     [Display(Name = "Chọn danh mục cha")]
     public int CategoryId { get; set; }
 
     [Required]
-    [Display(Name = "Có kích hoạt không")]
+    [Display(Name = "Hoạt động")]
     public bool IsActive { get; set; }
 
     [Required]
     public DateTime CreatedDate { get; set; }
 
     [ValidateNever]
+    [ForeignKey("CategoryId")]
     public virtual Category Category { get; set; } = null!;
 }

@@ -22,7 +22,7 @@ public partial class Category
     public string CategoryImageUrl { get; set; } = null!;
 
     [Required(ErrorMessage = "Mục này không được để trống")]
-    [Display(Name = "Kích hoạt luôn không")]
+    [Display(Name = "Hoạt động")]
     public bool IsActive { get; set; }
 
     [Required]

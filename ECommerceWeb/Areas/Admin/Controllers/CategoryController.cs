@@ -1,6 +1,10 @@
 ﻿using ECommerceWeb.Data;
 using Microsoft.AspNetCore.Mvc;
 using ECommerceWeb.Data.Models;
+using Microsoft.EntityFrameworkCore;
+using X.PagedList;
+using System.Formats.Tar;
+using X.PagedList.Extensions;
 
 namespace ECommerceWeb.Areas.Admin.Controllers
 {
@@ -16,10 +20,20 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string searchText, int? page)
         {
-            List<Category> itemList = _db.Categories.OrderByDescending(x => x.CategoryId).ToList();
-            return View(itemList);
+            var pageSize = 10;
+            if (page == null)
+            {
+                page = 1;
+            }
+            var pageIndex = page.HasValue ? Convert.ToInt32(page) : 1;
+            IEnumerable<Category> itemList = _db.Categories.OrderByDescending(x => x.CategoryId);
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                itemList = itemList.Where(x => x.CategoryName.Contains(searchText) || x.CategoryId.ToString().Contains(searchText));
+            }
+            return View(itemList.ToPagedList(pageIndex, pageSize));
         }
 
         public IActionResult Upsert(int? id)
@@ -98,6 +112,17 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 Category? categoryFromDb = _db.Categories.FirstOrDefault(u => u.CategoryId == id);
                 if (categoryFromDb != null)
                 {
+                    if (!string.IsNullOrEmpty(categoryFromDb.CategoryImageUrl))
+                    {
+                        // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
+                        var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, categoryFromDb.CategoryImageUrl.TrimStart('\\'));
+
+                        // Nếu có rồi thì xóa luôn cái cũ
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
                     _db.Categories.Remove(categoryFromDb);
                     _db.SaveChanges();
                     return Json(new { success = true });
@@ -105,6 +130,54 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 return Json(new { success = false });
             }
             return NotFound();
+        }
+
+        public IActionResult IsActive(int? id)
+        {
+            if (id != null)
+            {
+                Category? categoryFromDb = _db.Categories.FirstOrDefault(u => u.CategoryId == id);
+                if (categoryFromDb != null)
+                {
+                    categoryFromDb.IsActive = !categoryFromDb.IsActive;
+                    _db.Entry(categoryFromDb).State = EntityState.Modified;
+                    _db.SaveChanges();
+                    return Json(new { success = true, IsActive = categoryFromDb.IsActive });
+                }
+                return Json(new { success = false });
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        public IActionResult DeleteAll(string ids)
+        {
+            if (!string.IsNullOrEmpty(ids))
+            {
+                var items = ids.Split(',');
+                if (items != null && items.Any())
+                {
+                    foreach (var item in items)
+                    {
+                        Category? categoryFromDb = _db.Categories.FirstOrDefault(u => u.CategoryId == int.Parse(item));
+                        if (!string.IsNullOrEmpty(categoryFromDb.CategoryImageUrl))
+                        {
+                            // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
+                            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, categoryFromDb.CategoryImageUrl.TrimStart('\\'));
+
+                            // Nếu có rồi thì xóa luôn cái cũ
+                            if (System.IO.File.Exists(oldImagePath))
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                        }
+                        _db.Categories.Remove(categoryFromDb);
+                        _db.SaveChanges();
+                    }
+                }
+                return Json(new { success = true });
+            }
+            return Json(new { success = false });
         }
     }
 }

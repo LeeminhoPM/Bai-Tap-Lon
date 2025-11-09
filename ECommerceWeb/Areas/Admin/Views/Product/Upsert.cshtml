@@ -1,0 +1,288 @@
+﻿@model ProductVM
+
+@{
+    ViewBag.Title = "Sản phẩm";
+}
+
+@section naviheader {
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+        </li>
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="~/adminPageAssets/index3.html" class="nav-link">Trang chủ</a>
+        </li>
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="#" class="nav-link">@ViewBag.Title</a>
+        </li>
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="#" class="nav-link">@(Model.Product.ProductId == 0 ? "Thêm mới" : "Cập nhật")</a>
+        </li>
+    </ul>
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Quản lý @ViewBag.Title</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">@ViewBag.Title</a></li>
+                    <li class="breadcrumb-item active">@((Model.Product.ProductId == 0 ? "Thêm mới" : "Cập nhật") + " " + ViewBag.Title)</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <!-- Default box -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Thông tin @ViewBag.Title</h3>
+        </div>
+        <div class="card-body">
+            <div class="bs-stepper linear">
+                <div class="bs-stepper-content">
+                    <form method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true)
+                        <input asp-for="Product.ProductId" hidden />
+                        <div class="card-header p-2">
+                            <ul class="nav nav-pills">
+                                <li class="nav-item"><a class="nav-link active" href="#activity" data-toggle="tab">Thông tin chung</a></li>
+                                <li class="nav-item"><a class="nav-link" href="#timeline" data-toggle="tab">Hình ảnh</a></li>
+                                <li class="nav-item"><a class="nav-link" href="#settings" data-toggle="tab">SEO</a></li>
+                            </ul>
+                        </div><!-- /.card-header -->
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <div class="active tab-pane" id="activity">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label asp-for="Product.ProductName"></label>
+                                                <input asp-for="Product.ProductName" class="form-control">
+                                                <span asp-validation-for="Product.ProductName" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label asp-for="Product.CompanyName"></label>
+                                                <input asp-for="Product.CompanyName" class="form-control">
+                                                <span asp-validation-for="Product.CompanyName" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label asp-for="Product.ShortDescription"></label>
+                                        <textarea asp-for="Product.ShortDescription" class="form-control"></textarea>
+                                        <span asp-validation-for="Product.ShortDescription" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label asp-for="Product.LongDescription"></label>
+                                        <textarea asp-for="Product.LongDescription" class="form-control"></textarea>
+                                        <span asp-validation-for="Product.LongDescription" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label asp-for="Product.AdditionalDescription"></label>
+                                        <textarea asp-for="Product.AdditionalDescription" class="form-control"></textarea>
+                                        <span asp-validation-for="Product.AdditionalDescription" class="text-danger"></span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label asp-for="Product.Price"></label>
+                                                <input asp-for="Product.Price" class="form-control">
+                                                <span asp-validation-for="Product.Price" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label asp-for="Product.Quantity"></label>
+                                                <input asp-for="Product.Quantity" class="form-control">
+                                                <span asp-validation-for="Product.Quantity" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" asp-for="Product.IsActive" class="custom-control-input">
+                                                    <label class="custom-control-label" asp-for="Product.IsActive"></label>
+                                                    <span asp-validation-for="Product.IsActive" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" asp-for="Product.IsCustomized" class="custom-control-input">
+                                                    <label class="custom-control-label" asp-for="Product.IsCustomized"></label>
+                                                    <span asp-validation-for="Product.IsCustomized" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <label asp-for="Product.CategoryId"></label>
+                                                <select id="PCategory" asp-for="Product.CategoryId" asp-items="@Model.CategoryList" class="form-select">
+                                                    <option disabled selected>Open this select menu</option>
+                                                </select>
+                                                <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <label asp-for="Product.SubCategoryId"></label>
+                                                <select id="PSubCategory" asp-for="Product.SubCategoryId" class="form-select">
+                                                    <option disabled selected>Open this select menu</option>
+                                                </select>
+                                                <span asp-validation-for="Product.SubCategoryId" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <a asp-action="Index" class="btn btn-danger">Quay lại</a>
+                                    <button type="submit" class="btn btn-primary">@(Model.Product.ProductId == 0 ? "Thêm mới" : "Cập nhật")</button>
+                                </div>
+                                <!-- /.tab-pane -->
+                                <div class="tab-pane" id="timeline">
+                                    <div class="row">
+                                        <div class="col-md-12 text-right">
+                                            <input type="file" id="imageChooser" name="files" class="btn btn-primary" multiple>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <table class="table table-hover" id="imagesPreview">
+                                                <thead>
+                                                    <tr>
+                                                        <th>STT</th>
+                                                        <th>Ảnh</th>
+                                                        <th>Ảnh đại diện</th>
+                                                        <th>Thao tác</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @for (int i = 0; i < Model.ProductImageList.Count; i++)
+                                                    {
+                                                        <tr id="trow_@(i + 1)">
+                                                            <input type="hidden" name="ProductImageList[@i].ImageId" value="@Model.ProductImageList[i].ImageId" />
+                                                            <input type="hidden" name="ProductImageList[@i].ImageUrl" value="@Model.ProductImageList[i].ImageUrl" />
+
+                                                            <td>@(i + 1)</td>
+                                                            <td>
+                                                                <img src="@Model.ProductImageList[i].ImageUrl" width="100">
+                                                            </td>
+                                                            <td>
+                                                                <input asp-for="ProductImageList[i].DefaultImage"
+                                                                       name="isDefault"
+                                                                       type="radio"
+                                                                       value="@(i + 1)" />
+                                                            </td>
+                                                            <td>
+                                                                <button type="button" data-id="@(i + 1)" class=".imageDeleteBtn btn btn-sm btn-danger">Xóa</button>
+                                                            </td>
+                                                        </tr>
+                                                    }
+a
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <a asp-action="Index" class="btn btn-danger">Quay lại</a>
+                                        <button type="submit" class="btn btn-primary">@(Model.Product.ProductId == 0 ? "Thêm mới" : "Cập nhật")</button>
+                                    </div>
+                                </div>
+                                <!-- /.tab-pane -->
+
+                                <div class="tab-pane" id="settings">
+                                </div>
+                                <!-- /.tab-pane -->
+                            </div>
+                            <!-- /.tab-content -->
+                        </div><!-- /.card-body -->
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- /.card-body -->
+        <div class="card-footer">
+        </div>
+        <!-- /.card-footer-->
+    </div>
+    <!-- /.card -->
+</section>
+<!-- /.content -->
+@section scripts {
+    <script>
+        $(document).ready(function() {
+            $("#PCategory").on('change', function() {
+                var url = "@Url.Content("~/Admin/Product/getSubCategoryById")";
+                $.getJSON(url, { id: $("#PCategory").val() }, function(data) {
+                    $('#PSubCategory').empty();
+                    $('#PSubCategory').append("<option>Select SubCategory</option>");
+                    var optionsArray = $.map(data, function(optionData, index) {
+                        return '<option value=' + optionData.subCategoryId + '>' + optionData.subCategoryName + '</option>';
+                    });
+                    $('#PSubCategory').append(optionsArray.join(''));
+                });
+            });
+
+            $('#imageChooser').on('change', function () {
+                const files = this.files;
+                if (files.length > 0) {
+                    $.each(files, function (index, file) {
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function (e) {
+                                var rowCount = $('#imagesPreview tbody tr').length + 1;
+                                var row = `<tr id="trow_${rowCount}">
+                                    <td>${rowCount}</td>
+                                    <td>
+                                        <img src="${e.target.result}" width="100">
+                                    </td>
+                                    <td>
+                                        <input name="isDefault" type="radio" value="${rowCount}" />
+                                    </td>
+                                    <td>
+                                        <button type="button" data-id="${rowCount}" class="imageDeleteBtn btn btn-sm btn-danger">Xóa</button>
+                                    </td>
+                                </tr>`;
+                                $('#imagesPreview tbody').append(row);
+                                if (rowCount === 1) {
+                                    $('#imagesPreview tbody tr td input').attr('checked', 'checked');
+                                }
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                }
+            });
+
+            $(document).on('click', '.imageDeleteBtn', function(){
+                var conf = confirm("Bạn muốn xóa ảnh này không");
+                if (conf === true) {
+                    var _id = $(this).data('id');
+                    $('#trow_' + _id).fadeTo('fast', 0, function() {
+                        $(this).remove();
+                        $('#imagesPreview tbody tr').each(function (index) {
+                            var newIndex = index + 1;
+                            $(this).find('td:first').text(newIndex);
+                            $(this).attr('id', 'trow_' + newIndex);
+                            $(this).find('.imageDeleteBtn').data('id', newIndex);
+                            $(this).find('input[name="isDefault"]').val(newIndex);
+                            if ($(this).find('input[name="isDefault"]').val() == 1) {
+                                $(this).find('input[name="isDefault"]').attr('checked', 'checked');
+                            }
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+}

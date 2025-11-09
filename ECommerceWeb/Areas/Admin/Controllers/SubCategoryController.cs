@@ -3,6 +3,8 @@ using ECommerceWeb.Data.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using X.PagedList.Extensions;
 
 namespace ECommerceWeb.Areas.Admin.Controllers
 {
@@ -18,10 +20,20 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string searchText, int? page)
         {
-            List<SubCategory> items = _db.SubCategories.OrderByDescending(x => x.SubCategoryId).ToList();
-            return View(items);
+            var pageSize = 10;
+            if (page == null)
+            {
+                page = 1;
+            }
+            var pageIndex = page.HasValue ? Convert.ToInt32(page) : 1;
+            IEnumerable<SubCategory> itemList = _db.SubCategories.OrderByDescending(x => x.SubCategoryId);
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                itemList = itemList.Where(x => x.SubCategoryName.Contains(searchText) || x.SubCategoryId.ToString().Contains(searchText));
+            }
+            return View(itemList.ToPagedList(pageIndex, pageSize));
         }
 
         public IActionResult Upsert(int? id)
@@ -102,6 +114,17 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 SubCategory? subCategoryFromDb = _db.SubCategories.FirstOrDefault(u => u.SubCategoryId == id);
                 if (subCategoryFromDb != null)
                 {
+                    if (!string.IsNullOrEmpty(subCategoryFromDb.SubCategoryImageUrl))
+                    {
+                        // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
+                        var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, subCategoryFromDb.SubCategoryImageUrl.TrimStart('\\'));
+
+                        // Nếu có rồi thì xóa luôn cái cũ
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
                     _db.SubCategories.Remove(subCategoryFromDb);
                     _db.SaveChanges();
                     return Json(new { success = true });
@@ -109,6 +132,54 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 return Json(new { success = false });
             }
             return NotFound();
+        }
+
+        public IActionResult IsActive(int? id)
+        {
+            if (id != null)
+            {
+                SubCategory? subCategoryFromDb = _db.SubCategories.FirstOrDefault(u => u.SubCategoryId == id);
+                if (subCategoryFromDb != null)
+                {
+                    subCategoryFromDb.IsActive = !subCategoryFromDb.IsActive;
+                    _db.Entry(subCategoryFromDb).State = EntityState.Modified;
+                    _db.SaveChanges();
+                    return Json(new { success = true, IsActive = subCategoryFromDb.IsActive });
+                }
+                return Json(new { success = false });
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        public IActionResult DeleteAll(string ids)
+        {
+            if (!string.IsNullOrEmpty(ids))
+            {
+                var items = ids.Split(',');
+                if (items != null && items.Any())
+                {
+                    foreach (var item in items)
+                    {
+                        SubCategory? subCategoryFromDb = _db.SubCategories.FirstOrDefault(u => u.SubCategoryId == int.Parse(item));
+                        if (!string.IsNullOrEmpty(subCategoryFromDb.SubCategoryImageUrl))
+                        {
+                            // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
+                            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, subCategoryFromDb.SubCategoryImageUrl.TrimStart('\\'));
+
+                            // Nếu có rồi thì xóa luôn cái cũ
+                            if (System.IO.File.Exists(oldImagePath))
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                        }
+                        _db.SubCategories.Remove(subCategoryFromDb);
+                        _db.SaveChanges();
+                    }
+                }
+                return Json(new { success = true });
+            }
+            return Json(new { success = false });
         }
     }
 }
