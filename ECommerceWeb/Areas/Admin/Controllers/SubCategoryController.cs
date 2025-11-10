@@ -31,7 +31,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             IEnumerable<SubCategory> itemList = _db.SubCategories.OrderByDescending(x => x.SubCategoryId);
             if (!string.IsNullOrEmpty(searchText))
             {
-                itemList = itemList.Where(x => x.SubCategoryName.Contains(searchText) || x.SubCategoryId.ToString().Contains(searchText));
+                itemList = itemList.Where(x => x.SubCategoryName.ToLower().Contains(searchText.ToLower()) || x.SubCategoryId.ToString().ToLower().Contains(searchText.ToLower()));
             }
             return View(itemList.ToPagedList(pageIndex, pageSize));
         }

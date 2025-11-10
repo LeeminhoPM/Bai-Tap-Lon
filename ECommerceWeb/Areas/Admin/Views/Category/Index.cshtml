@@ -43,7 +43,7 @@
 
             <div class="card-tools">
                 <a asp-area="Admin" asp-action="Upsert" asp-controller="Category" class="btn btn-primary">Thêm mới</a>
-                <a asp-area="Admin" asp-action="Upsert" asp-controller="Category" id="delete-all-btn" class="btn btn-danger">Xóa lựa chọn</a>
+                <a id="delete-all-btn" class="btn btn-danger">Xóa lựa chọn</a>
             </div>
         </div>
         <div class="card-body">
@@ -52,7 +52,7 @@
                     @using(Html.BeginForm("Index", "Category", FormMethod.Get, new{}))
                     {
                         <div class="input-group input-group-sm">
-                            @Html.TextBox("searchText", new { })
+                            @Html.TextBox("searchText", new {})
                             <span class="input-group-append">
                                 <button class="btn btn-info btn-flat" type="submit">Tìm kiếm</button>
                             </span>

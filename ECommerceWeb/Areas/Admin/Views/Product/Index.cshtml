@@ -44,13 +44,13 @@
 
             <div class="card-tools">
                 <a asp-area="Admin" asp-action="Upsert" class="btn btn-primary">Thêm mới</a>
-                <a asp-area="Admin" asp-action="Upsert" id="delete-all-btn" class="btn btn-danger">Xóa lựa chọn</a>
+                <a id="delete-all-btn" class="btn btn-danger">Xóa lựa chọn</a>
             </div>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-6">
-                    @using(Html.BeginForm("Index", "Category", FormMethod.Get, new{}))
+                    @using(Html.BeginForm("Index", "Product", FormMethod.Get, new{}))
                     {
                         <div class="input-group input-group-sm">
                             @Html.TextBox("searchText", new { })
@@ -90,9 +90,9 @@
                     {
                         @foreach (var item in Model)
                         {
-                            <tr id="trow-@item.CategoryId">
+                            <tr id="trow-@item.ProductId">
                                 <td>
-                                    <input type="checkbox" class="select-input" value="@item.CategoryId" />
+                                    <input type="checkbox" class="select-input" value="@item.ProductId" />
                                 </td>
                                 <td class="text-center">@item.ProductId</td>
                                 <td class="text-center">

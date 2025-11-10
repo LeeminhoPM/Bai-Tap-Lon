@@ -23,7 +23,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public IActionResult Index(int? page)
+        public IActionResult Index(string searchText, int? page)
         {
             var pageSize = 10;
             if (page == null)
@@ -32,6 +32,10 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             }
             var pageIndex = page.HasValue ? Convert.ToInt32(page) : 1;
             IEnumerable<Product> itemList = _db.Products.Include(p => p.ProductImages).OrderByDescending(x => x.ProductId);
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                itemList = itemList.Where(x => x.ProductName.ToLower().Contains(searchText.ToLower()) || x.ProductId.ToString().ToLower().Contains(searchText.ToLower()));
+            }
             return View(itemList.ToPagedList(pageIndex, pageSize));
         }
 
@@ -115,6 +119,9 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                     obj.Product.ProductImages.Add(productImage);
                 }
                 _db.SaveChanges();
+                obj.ProductImageList = _db.Products.Include(p => p.ProductImages)
+                    .FirstOrDefault(u => u.ProductId == obj.Product.ProductId)
+                    .ProductImages.ToList();
 
                 _db.ProductImages
                    .Where(x => x.ProductId == obj.Product.ProductId)
@@ -188,6 +195,38 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 return Json(new { success = false });
             }
             return NotFound();
+        }
+
+        public async Task<IActionResult> DeleteAll(string ids)
+        {
+            if (!string.IsNullOrEmpty(ids))
+            {
+                var items = ids.Split(',');
+                if (items != null && items.Any())
+                {
+                    foreach (var item in items)
+                    {
+                        Product? productFromDb = _db.Products.Include(u => u.ProductImages).FirstOrDefault(u => u.ProductId == int.Parse(item));
+                        foreach (var image in productFromDb.ProductImages)
+                        {
+                            if (!string.IsNullOrEmpty(image.ImageUrl))
+                            {
+                                // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
+                                var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('\\'));
+                                // Nếu có rồi thì xóa luôn cái cũ
+                                if (System.IO.File.Exists(oldImagePath))
+                                {
+                                    System.IO.File.Delete(oldImagePath);
+                                }
+                            }
+                        }
+                        _db.Products.Remove(productFromDb);
+                        _db.SaveChanges();
+                    }
+                }
+                return Json(new { success = true });
+            }
+            return Json(new { success = false });
         }
     }
 }
