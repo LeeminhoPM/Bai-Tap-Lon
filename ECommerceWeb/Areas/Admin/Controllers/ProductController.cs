@@ -31,7 +31,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 page = 1;
             }
             var pageIndex = page.HasValue ? Convert.ToInt32(page) : 1;
-            IEnumerable<Product> itemList = _db.Products.OrderByDescending(x => x.ProductId);
+            IEnumerable<Product> itemList = _db.Products.Include(p => p.ProductImages).OrderByDescending(x => x.ProductId);
             return View(itemList.ToPagedList(pageIndex, pageSize));
         }
 
@@ -132,6 +132,62 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 obj.CategoryList = new SelectList(_db.Categories, "CategoryId", "CategoryName");
                 return View(obj);
             }
+        }
+
+        public async Task<IActionResult> DeleteProductImage(int? id)
+        {
+            if (id != null)
+            {
+                ProductImage? image = _db.ProductImages.FirstOrDefault(u => u.ImageId == id);
+                if (image != null)
+                {
+                    if (!string.IsNullOrEmpty(image.ImageUrl))
+                    {
+                        // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
+                        var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('\\'));
+
+                        // Nếu có rồi thì xóa luôn cái cũ
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+                    _db.ProductImages.Remove(image);
+                    _db.SaveChanges();
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false });
+            }
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id != null)
+            {
+                Product? productFromDb = _db.Products.Include(x => x.ProductImages).FirstOrDefault(u => u.ProductId == id);
+                if (productFromDb != null)
+                {
+                    foreach (var image in productFromDb.ProductImages)
+                    {
+                        if (!string.IsNullOrEmpty(image.ImageUrl))
+                        {
+                            // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
+                            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('\\'));
+                            // Nếu có rồi thì xóa luôn cái cũ
+                            if (System.IO.File.Exists(oldImagePath))
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                        }
+                    }
+                    _db.Products.Remove(productFromDb);
+                    _db.SaveChanges();
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false });
+            }
+            return NotFound();
         }
     }
 }

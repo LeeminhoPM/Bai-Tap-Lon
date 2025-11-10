@@ -34,7 +34,7 @@ public partial class Category
 
     public Category()
     {
-        Products = new HashSet<Product>();
-        SubCategories = new HashSet<SubCategory>();
+        Products = new List<Product>();
+        SubCategories = new List<SubCategory>();
     }
 }

@@ -183,19 +183,19 @@
                                                                 <input asp-for="ProductImageList[i].DefaultImage"
                                                                        name="isDefault"
                                                                        type="radio"
-                                                                       value="@(i + 1)" />
+                                                                       value="@(i + 1)"
+                                                                       checked="@(Model.ProductImageList[i].DefaultImage)" />
                                                             </td>
                                                             <td>
-                                                                <button type="button" data-id="@(i + 1)" class=".imageDeleteBtn btn btn-sm btn-danger">Xóa</button>
+                                                                <button type="button" data-id="@Model.ProductImageList[i].ImageId" class="imageDeleteAction btn btn-sm btn-danger">
+                                                                    Xóa
+                                                                </button>
                                                             </td>
                                                         </tr>
                                                     }
-a
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <a asp-action="Index" class="btn btn-danger">Quay lại</a>
-                                        <button type="submit" class="btn btn-primary">@(Model.Product.ProductId == 0 ? "Thêm mới" : "Cập nhật")</button>
                                     </div>
                                 </div>
                                 <!-- /.tab-pane -->
@@ -265,6 +265,7 @@ a
             });
 
             $(document).on('click', '.imageDeleteBtn', function(){
+                debugger;
                 var conf = confirm("Bạn muốn xóa ảnh này không");
                 if (conf === true) {
                     var _id = $(this).data('id');
@@ -280,6 +281,35 @@ a
                                 $(this).find('input[name="isDefault"]').attr('checked', 'checked');
                             }
                         });
+                    });
+                }
+            });
+
+            $(document).on("click", ".imageDeleteAction", function () {
+                var id = $(this).data("id");
+                var conf = confirm("Bạn muốn xóa bản ghi này không");
+                if (conf == true) {
+                    $.ajax({
+                        url: "/Admin/Product/DeleteProductImage",
+                        type: "POST",
+                        data: { id: id },
+                        success: function(rs) {
+                            if (rs.success) {
+                                 $('#trow_' + id).fadeTo('fast', 0, function() {
+                                    $(this).remove();
+                                    $('#imagesPreview tbody tr').each(function (index) {
+                                        var newIndex = index + 1;
+                                        $(this).find('td:first').text(newIndex);
+                                        $(this).attr('id', 'trow_' + newIndex);
+                                        $(this).find('.imageDeleteBtn').data('id', newIndex);
+                                        $(this).find('input[name="isDefault"]').val(newIndex);
+                                    });
+                                });
+                            }
+                            else {
+                                alert("Xóa không thành công");
+                            }
+                        }
                     });
                 }
             });

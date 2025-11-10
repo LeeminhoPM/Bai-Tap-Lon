@@ -109,7 +109,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
         {
             if (id != null)
             {
-                Category? categoryFromDb = _db.Categories.FirstOrDefault(u => u.CategoryId == id);
+                Category? categoryFromDb = _db.Categories.Include(u => u.SubCategories).FirstOrDefault(u => u.CategoryId == id);
                 if (categoryFromDb != null)
                 {
                     if (!string.IsNullOrEmpty(categoryFromDb.CategoryImageUrl))
@@ -159,7 +159,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 {
                     foreach (var item in items)
                     {
-                        Category? categoryFromDb = _db.Categories.FirstOrDefault(u => u.CategoryId == int.Parse(item));
+                        Category? categoryFromDb = _db.Categories.Include(u => u.SubCategories).FirstOrDefault(u => u.CategoryId == int.Parse(item));
                         if (!string.IsNullOrEmpty(categoryFromDb.CategoryImageUrl))
                         {
                             // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
