@@ -1,7 +1,12 @@
-﻿@model IPagedList<SubCategory>
+﻿@using ECommerceWeb.Areas.Admin.Controllers
+@model PagedSubCategoryViewModel
 
 @{
     ViewBag.Title = "Danh mục con";
+    // Lấy giá trị tìm kiếm để giữ lại trong ô tìm kiếm
+    var searchText = Model?.SearchText ?? "";
+    // Lấy PageIndex hiện tại để xây dựng link phân trang
+    var currentPage = Model?.PageIndex ?? 1;
 }
 
 @section naviheader {
@@ -18,7 +23,6 @@
     </ul>
 }
 
-<!-- Content Header (Page header) -->
 <section class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -32,33 +36,29 @@
                 </ol>
             </div>
         </div>
-    </div><!-- /.container-fluid -->
+    </div>
 </section>
-
-<!-- Main content -->
 <section class="content">
-    <!-- Default box -->
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Danh sách @ViewBag.Title</h3>
 
             <div class="card-tools">
                 <a asp-action="Upsert" class="btn btn-primary">Thêm mới</a>
-                <a asp-area="Admin" asp-action="Upsert" asp-controller="Category" id="delete-all-btn" class="btn btn-danger">Xóa lựa chọn</a>
+                <a id="delete-all-btn" class="btn btn-danger">Xóa lựa chọn</a>
             </div>
         </div>
         <div class="card-body">
-            <div class="row">
+            <div class="row mb-3">
                 <div class="col-6">
-                    @using (Html.BeginForm("Index", "Category", FormMethod.Get, new { }))
-                    {
+                    <form asp-action="Index" method="get">
                         <div class="input-group input-group-sm">
-                            @Html.TextBox("searchText", new { })
+                            <input type="text" name="searchText" value="@searchText" class="form-control" placeholder="Tìm kiếm...">
                             <span class="input-group-append">
                                 <button class="btn btn-info btn-flat" type="submit">Tìm kiếm</button>
                             </span>
                         </div>
-                    }
+                    </form>
                 </div>
             </div>
             <table class="table table-hover">
@@ -77,9 +77,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model != null && Model.Any())
+                    @if (Model != null && Model.SubCategories.Any())
                     {
-                        @foreach (var item in Model)
+                        @foreach (var item in Model.SubCategories)
                         {
                             <tr id="trow-@item.SubCategoryId">
                                 <td>
@@ -111,59 +111,66 @@
                     else
                     {
                         <tr>
-                            <td colspan="7">Không có bản ghi nào</td>
+                            <td colspan="8">Không có bản ghi nào</td>
                         </tr>
                     }
                 </tbody>
             </table>
-
-             <div class="row mt-4">
+<div class="row mt-4">
                 <div class="col-12" style="text-align:center">
-                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, pageSize = 10 }), 
-                    new PagedListRenderOptions(){
-                        UlElementClasses = new[] { "pagination", "justify-content-center" },
-                        LiElementClasses = new string[] { "page-item" },
-                        PageClasses = new string[] { "page-link" }
-                    })
+                    <ul class="pagination justify-content-center">
+                       
+                        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-searchText="@searchText">Trước</a>
+                        </li>
+
+                       
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-searchText="@searchText">@i</a>
+                            </li>
+                        }
+
+                       
+                        <li class="page-item @(currentPage >= Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-searchText="@searchText">Sau</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
-        <!-- /.card-body -->
         <div class="card-footer">
         </div>
-        <!-- /.card-footer-->
-    </div>
-    <!-- /.card -->
-</section>
-<!-- /.content -->
+        </div>
+    </section>
 @section scripts {
     <script>
         $(document).ready(function () {
+            
+            // Xóa nhiều
             $("body").on("click", "#delete-all-btn", function(e) {
                 e.preventDefault();
                 var str = "";
-                var checkboxs = $(this).parents(".card").find("tr td input:checkbox");
+                var checkboxs = $(this).parents(".card").find("tr td input:checkbox.select-input:checked"); 
                 var i = 0;
+                
                 checkboxs.each(function() {
-                    if (this.checked) {
-                        checkboxs.attr("selected", "checked");
-                        if (i === 0) {
-                            str += $(this).val();
-                        } else {
-                            str += ", " + $(this).val();
-                        }
-                        i++;
+                    if (i === 0) {
+                        str += $(this).val();
                     } else {
-                        checkboxs.attr("selected", "");
+                        str += "," + $(this).val(); 
                     }
+                    i++;
                 });
+
                 if (str.length > 0) {
-                    var conf = confirm("Bạn có muốn xóa bản ghi này không");
+                    var conf = confirm("Bạn có muốn xóa " + i + " bản ghi đã chọn không?");
                     if (conf === true) {
                         $.ajax({
                             url: "/Admin/SubCategory/DeleteAll",
                             type: "POST",
-                            data: {ids : str },
+                            data: { ids : str },
                             success: function(rs) {
                                 if (rs.success) {
                                     location.reload();
@@ -171,42 +178,41 @@
                             }
                         });
                     }
+                } else {
+                     alert("Vui lòng chọn ít nhất một bản ghi để xóa.");
                 }
             });
 
+            // Chọn tất cả
             $("body").on("change", "#select-all-cbox", function() {
                 var checkStatus = this.checked;
-                var checkboxs = $(this).parents(".card-body").find("tr td input:checkbox");
-                checkboxs.each(function() {
-                    this.checked = checkStatus;
-                    if (this.checked) {
-                        checkboxs.attr("selected", "checked");
-                    } else {
-                        checkboxs.attr("selected", "");
-                    }
-                });
+                var checkboxs = $(this).parents(".card-body").find("tr td input:checkbox.select-input");
+                checkboxs.prop('checked', checkStatus); 
             });
 
-            $("body").on("click", ".my-btn-delete", function () {
+            // Xóa một mục
+            $("body").on("click", ".my-btn-delete", function (e) {
+                e.preventDefault(); 
                 var id = $(this).data("id");
                 var conf = confirm("Bạn muốn xóa bản ghi này không");
                 if (conf == true) {
                     $.ajax({
                         url: "/Admin/SubCategory/Delete",
-                        type: "POST",
+                        type: "DELETE", 
                         data: { id: id },
                         success: function(rs) {
                             if (rs.success) {
                                 $("#trow-" + id).remove();
                             }
                             else {
-                                alert("Xóa không thành công");
+                                alert("Xóa không thành công: " + rs.message);
                             }
                         }
                     });
                 }
             });
 
+            // Chuyển trạng thái Hoạt động
             $("body").on("click", ".my-active-btn", function () {
                 var id = $(this).data("id");
                 var btn = $(this);
@@ -220,7 +226,7 @@
                                 btn.html("<i class=\"bi bi-check-lg text-success\" style=\" -webkit-text-stroke: 1px; \"></i>");
                             }
                             else {
-                                btn.html("<i class=\"bi bi-check-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>");
+                                btn.html("<i class=\"bi bi-x-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>"); 
                             }
                         }
                     }

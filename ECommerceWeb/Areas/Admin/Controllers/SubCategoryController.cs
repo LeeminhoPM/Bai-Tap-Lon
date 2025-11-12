@@ -4,10 +4,22 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using X.PagedList.Extensions;
+using System.Linq;
+using System.IO;
 
 namespace ECommerceWeb.Areas.Admin.Controllers
 {
+    // --- ViewModel ---
+    public class PagedSubCategoryViewModel
+    {
+        public List<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
+        public int PageIndex { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public string? SearchText { get; set; }
+    }
+
+    // --- Controller ---
     [Area("Admin")]
     public class SubCategoryController : Controller
     {
@@ -20,166 +32,208 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public IActionResult Index(string searchText, int? page)
+        // --- 1. Index (Phân trang thủ công Async) ---
+        public async Task<IActionResult> Index(string searchText, int? page)
         {
             var pageSize = 10;
-            if (page == null)
-            {
-                page = 1;
-            }
-            var pageIndex = page.HasValue ? Convert.ToInt32(page) : 1;
-            IEnumerable<SubCategory> itemList = _db.SubCategories.OrderByDescending(x => x.SubCategoryId);
+            var pageIndex = page.HasValue && page.Value > 0 ? page.Value : 1;
+
+            IQueryable<SubCategory> query = _db.SubCategories.Include(u => u.Category)
+                                                             .OrderByDescending(x => x.SubCategoryId);
+
             if (!string.IsNullOrEmpty(searchText))
             {
-                itemList = itemList.Where(x => x.SubCategoryName.ToLower().Contains(searchText.ToLower()) || x.SubCategoryId.ToString().ToLower().Contains(searchText.ToLower()));
+                string search = searchText.ToLower();
+                query = query.Where(x => x.SubCategoryName.ToLower().Contains(search) ||
+                                         x.SubCategoryId.ToString().ToLower().Contains(search));
             }
-            return View(itemList.ToPagedList(pageIndex, pageSize));
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query.Skip((pageIndex - 1) * pageSize)
+                                   .Take(pageSize)
+                                   .ToListAsync();
+
+            var viewModel = new PagedSubCategoryViewModel
+            {
+                SubCategories = items,
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                SearchText = searchText
+            };
+
+            return View(viewModel);
         }
 
-        public IActionResult Upsert(int? id)
+        // --- 2. Upsert GET (Async) ---
+        public async Task<IActionResult> Upsert(int? id)
         {
-            ViewBag.CategoryOptions = new SelectList(_db.Categories, "CategoryId", "CategoryName");
+            ViewBag.CategoryOptions = new SelectList(await _db.Categories.ToListAsync(), "CategoryId", "CategoryName");
+
             if (id == null || id == 0)
             {
                 return View(new SubCategory());
             }
-            else
+
+            SubCategory? subCategoryFromDb = await _db.SubCategories.FirstOrDefaultAsync(u => u.SubCategoryId == id);
+
+            if (subCategoryFromDb != null)
             {
-                SubCategory? subCategoryFromDb = _db.SubCategories.FirstOrDefault(u => u.SubCategoryId == id);
-                if (subCategoryFromDb != null)
-                {
-                    return View(subCategoryFromDb);
-                }
-                return NotFound();
+                return View(subCategoryFromDb);
             }
+
+            return NotFound();
         }
 
+        // --- 3. Upsert POST (Async/File Handling) ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Upsert(SubCategory obj, IFormFile? file)
+        public async Task<IActionResult> Upsert(SubCategory obj, IFormFile? file)
         {
-            Console.WriteLine(ModelState.IsValid);
+            if (obj.SubCategoryId == 0 && file == null)
+            {
+                ModelState.AddModelError("file", "Vui lòng chọn ảnh cho Danh mục con.");
+            }
+
             if (ModelState.IsValid)
             {
-                // Địa chỉ của thư mục wwwroot
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
+                string imageFolder = @"images\subCategory";
+                string categoryPath = Path.Combine(wwwRootPath, imageFolder);
+
                 if (file != null)
                 {
-                    // Tên file mới = Id độc nhất + đuôi file (.jpg, .png, .jpeg, ...)
+                    if (!System.IO.Directory.Exists(categoryPath))
+                    {
+                        System.IO.Directory.CreateDirectory(categoryPath);
+                    }
+
                     string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    // Địa chỉ của thư mục sẽ được copy ảnh sang
-                    string categoryPath = Path.Combine(wwwRootPath, @"images\subCategory");
 
                     if (!string.IsNullOrEmpty(obj.SubCategoryImageUrl))
                     {
-                        // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                        var oldImagePath = Path.Combine(wwwRootPath, obj.SubCategoryImageUrl.TrimStart('\\'));
+                        var oldImagePath = Path.Combine(wwwRootPath, obj.SubCategoryImageUrl.TrimStart('\\', '/'));
 
-                        // Nếu có rồi thì xóa luôn cái cũ
                         if (System.IO.File.Exists(oldImagePath))
                         {
-                            System.IO.File.Delete(oldImagePath);
+                            await Task.Run(() => System.IO.File.Delete(oldImagePath));
                         }
                     }
 
-                    // Copy ảnh vừa chọn vào thư mục
                     using (var fileStream = new FileStream(Path.Combine(categoryPath, fileName), FileMode.Create))
                     {
-                        file.CopyTo(fileStream);
+                        await file.CopyToAsync(fileStream);
                     }
 
-                    // Gán ImageUrl = đường dẫn của ảnh vừa copy
-                    obj.SubCategoryImageUrl = @"\images\subCategory\" + fileName;
+                    obj.SubCategoryImageUrl = $"/{imageFolder.Replace('\\', '/')}/{fileName}";
                 }
 
-                obj.CreatedDate = DateTime.Now;
                 if (obj.SubCategoryId == 0)
                 {
+                    obj.CreatedDate = DateTime.Now;
                     _db.SubCategories.Add(obj);
                 }
                 else
                 {
                     _db.SubCategories.Update(obj);
                 }
-                _db.SaveChanges();
+
+                await _db.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
+
+            ViewBag.CategoryOptions = new SelectList(await _db.Categories.ToListAsync(), "CategoryId", "CategoryName");
             return View(obj);
         }
 
-        public IActionResult Delete(int? id)
+        // --- 4. Delete (Async) ---
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int? id)
         {
-            if (id != null)
-            {
-                SubCategory? subCategoryFromDb = _db.SubCategories.FirstOrDefault(u => u.SubCategoryId == id);
-                if (subCategoryFromDb != null)
-                {
-                    if (!string.IsNullOrEmpty(subCategoryFromDb.SubCategoryImageUrl))
-                    {
-                        // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                        var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, subCategoryFromDb.SubCategoryImageUrl.TrimStart('\\'));
+            if (id == null) return Json(new { success = false, message = "ID không hợp lệ" });
 
-                        // Nếu có rồi thì xóa luôn cái cũ
-                        if (System.IO.File.Exists(oldImagePath))
-                        {
-                            System.IO.File.Delete(oldImagePath);
-                        }
-                    }
-                    _db.SubCategories.Remove(subCategoryFromDb);
-                    _db.SaveChanges();
-                    return Json(new { success = true });
-                }
-                return Json(new { success = false });
+            SubCategory? subCategoryFromDb = await _db.SubCategories.FirstOrDefaultAsync(u => u.SubCategoryId == id);
+
+            if (subCategoryFromDb == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy Danh mục con" });
             }
-            return NotFound();
+
+            if (!string.IsNullOrEmpty(subCategoryFromDb.SubCategoryImageUrl))
+            {
+                string oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, subCategoryFromDb.SubCategoryImageUrl.TrimStart('\\', '/'));
+
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    await Task.Run(() => System.IO.File.Delete(oldImagePath));
+                }
+            }
+
+            _db.SubCategories.Remove(subCategoryFromDb);
+            await _db.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Xóa thành công" });
         }
 
-        public IActionResult IsActive(int? id)
-        {
-            if (id != null)
-            {
-                SubCategory? subCategoryFromDb = _db.SubCategories.FirstOrDefault(u => u.SubCategoryId == id);
-                if (subCategoryFromDb != null)
-                {
-                    subCategoryFromDb.IsActive = !subCategoryFromDb.IsActive;
-                    _db.Entry(subCategoryFromDb).State = EntityState.Modified;
-                    _db.SaveChanges();
-                    return Json(new { success = true, IsActive = subCategoryFromDb.IsActive });
-                }
-                return Json(new { success = false });
-            }
-            return NotFound();
-        }
-
+        // --- 5. IsActive (Async) ---
         [HttpPost]
-        public IActionResult DeleteAll(string ids)
+        public async Task<IActionResult> IsActive(int? id)
         {
-            if (!string.IsNullOrEmpty(ids))
-            {
-                var items = ids.Split(',');
-                if (items != null && items.Any())
-                {
-                    foreach (var item in items)
-                    {
-                        SubCategory? subCategoryFromDb = _db.SubCategories.FirstOrDefault(u => u.SubCategoryId == int.Parse(item));
-                        if (!string.IsNullOrEmpty(subCategoryFromDb.SubCategoryImageUrl))
-                        {
-                            // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, subCategoryFromDb.SubCategoryImageUrl.TrimStart('\\'));
+            if (id == null) return Json(new { success = false });
 
-                            // Nếu có rồi thì xóa luôn cái cũ
-                            if (System.IO.File.Exists(oldImagePath))
-                            {
-                                System.IO.File.Delete(oldImagePath);
-                            }
-                        }
-                        _db.SubCategories.Remove(subCategoryFromDb);
-                        _db.SaveChanges();
-                    }
-                }
-                return Json(new { success = true });
+            SubCategory? subCategoryFromDb = await _db.SubCategories.FirstOrDefaultAsync(u => u.SubCategoryId == id);
+
+            if (subCategoryFromDb != null)
+            {
+                subCategoryFromDb.IsActive = !subCategoryFromDb.IsActive;
+                _db.Entry(subCategoryFromDb).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
+
+                return Json(new { success = true, IsActive = subCategoryFromDb.IsActive });
             }
             return Json(new { success = false });
+        }
+
+        // --- 6. DeleteAll (Async/Truy vấn tối ưu) ---
+        [HttpPost]
+        public async Task<IActionResult> DeleteAll(string ids)
+        {
+            if (string.IsNullOrEmpty(ids))
+            {
+                return Json(new { success = false });
+            }
+
+            var itemIds = ids.Split(',')
+                                .Select(s => int.TryParse(s, out int id) ? (int?)id : null)
+                                .Where(id => id.HasValue)
+                                .Select(id => id.Value)
+                                .ToList();
+
+            if (!itemIds.Any())
+            {
+                return Json(new { success = false, message = "Không có ID hợp lệ nào được cung cấp." });
+            }
+
+            var subCategoriesToDelete = await _db.SubCategories.Where(u => itemIds.Contains(u.SubCategoryId)).ToListAsync();
+
+            foreach (var subCategory in subCategoriesToDelete)
+            {
+                if (!string.IsNullOrEmpty(subCategory.SubCategoryImageUrl))
+                {
+                    string oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, subCategory.SubCategoryImageUrl.TrimStart('\\', '/'));
+
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        await Task.Run(() => System.IO.File.Delete(oldImagePath));
+                    }
+                }
+                _db.SubCategories.Remove(subCategory);
+            }
+
+            await _db.SaveChangesAsync();
+
+            return Json(new { success = true });
         }
     }
 }

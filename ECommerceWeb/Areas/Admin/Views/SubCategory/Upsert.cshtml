@@ -86,11 +86,25 @@
                         <div class="form-group">
                             <label asp-for="SubCategoryImageUrl"></label>
                             <div class="input-group">
-                                <label for="customFile" class="custom-file-label">
-                                    @(Model.SubCategoryImageUrl == null ? "Chọn file" : Model.SubCategoryImageUrl.ToString())
-                                </label>
-                                <input type="file" id="customFile" name="file" class="custom-file-input">
+                                <div class="custom-file">
+                                    <input type="file" id="customFile" name="file" class="custom-file-input">
+                                    <label for="customFile" class="custom-file-label" id="file-label">
+                                        @(Model.SubCategoryImageUrl == null ? "Chọn file" : Model.SubCategoryImageUrl.ToString())
+                                    </label>
+                                </div>
                             </div>
+                            <span asp-validation-for="SubCategoryImageUrl" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            @if (!string.IsNullOrEmpty(Model.SubCategoryImageUrl))
+                            {
+                                <img id="image-preview" src="@Model.SubCategoryImageUrl" alt="Xem trước ảnh" style="width: 200px; height: 150px; object-fit: contain; border: 1px solid #ccc; padding: 5px;" />
+                            }
+                            else
+                            {
+                                <img id="image-preview" src="#" alt="Xem trước ảnh" style="width: 200px; height: 150px; object-fit: contain; border: 1px solid #ccc; padding: 5px; display: none;" />
+                            }
                         </div>
                         <a asp-action="Index" class="btn btn-danger">Quay lại</a>
                         <button type="submit" class="btn btn-primary">@(Model.CategoryId == 0 ? "Thêm mới" : "Cập nhật")</button>
@@ -106,3 +120,45 @@
     <!-- /.card -->
 </section>
 <!-- /.content -->
+@section scripts {
+    @{
+        // Bạn cần đảm bảo file _ValidationScriptsPartial tồn tại
+        // Ví dụ: trong /Areas/Admin/Views/Shared/
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+
+            // Lắng nghe sự kiện thay đổi trên input file
+            $('#customFile').on('change', function() {
+                // 1. Cập nhật tên file trên label (cho Bootstrap custom-file)
+                var fileName = $(this).val().split('\\').pop();
+
+                if (fileName) {
+                    $('#file-label').text(fileName);
+                } else {
+                    // Khôi phục text mặc định nếu không có file nào được chọn
+                    $('#file-label').text('@(Model.SubCategoryImageUrl == null ? "Chọn file" : Model.SubCategoryImageUrl.ToString())');
+                }
+
+                // 2. Hiển thị ảnh preview
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        // Cập nhật src của thẻ <img> và hiển thị nó
+                        $('#image-preview')
+                            .attr('src', e.target.result)
+                            .show();
+                    };
+
+                    reader.readAsDataURL(this.files[0]);
+                } else {
+                    // Nếu không có file được chọn, ẩn ảnh preview
+                    $('#image-preview').hide();
+                }
+            });
+        });
+    </script>
+}
