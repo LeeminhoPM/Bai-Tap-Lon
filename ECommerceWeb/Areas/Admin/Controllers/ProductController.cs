@@ -36,7 +36,15 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             {
                 itemList = itemList.Where(x => x.ProductName.ToLower().Contains(searchText.ToLower()) || x.ProductId.ToString().ToLower().Contains(searchText.ToLower()));
             }
-            return View(itemList.ToPagedList(pageIndex, pageSize));
+            var model = itemList.ToPagedList(pageIndex, pageSize);
+
+            // Nếu là AJAX request → trả về PartialView
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_ProductTable", model);
+            }
+
+            return View(model);
         }
 
         public JsonResult GetSubCategoryById(int id)

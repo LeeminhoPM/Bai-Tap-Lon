@@ -1,0 +1,53 @@
+﻿@model IPagedList<Category>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th><input type="checkbox" id="select-all-cbox" /></th>
+            <th class="text-center">STT</th>
+            <th class="text-center">Tên danh mục</th>
+            <th class="text-center">Ảnh danh mục</th>
+            <th class="text-center">Hoạt động</th>
+            <th class="text-center">Ngày tạo</th>
+            <th class="text-center"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <tr id="trow-@item.CategoryId">
+                    <td><input type="checkbox" class="select-input" value="@item.CategoryId" /></td>
+                    <td class="text-center">@item.CategoryId</td>
+                    <td class="text-center">@item.CategoryName</td>
+                    <td class="text-center">
+                        <img width="100" src="@item.CategoryImageUrl" class="rounded img-fluid object-fit-contain" />
+                    </td>
+                    <td class="text-center">
+                        <a data-id="@item.CategoryId" class="my-active-btn">
+                            @(item.IsActive
+                                                ? Html.Raw("<i class=\"bi bi-check-lg text-success\"></i>")
+                                                : Html.Raw("<i class=\"bi bi-x-lg text-danger\"></i>"))
+                </a>
+            </td>
+            <td class="text-center">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
+            <td class="text-center">
+                <a asp-area="Admin" asp-controller="Category" asp-action="Upsert" asp-route-id="@item.CategoryId" class="btn btn-primary">
+                    <i class="bi bi-pencil-square"></i> Sửa
+                </a>
+                <a asp-action="Index" data-id="@item.CategoryId" class="btn btn-danger my-btn-delete">
+                    <i class="bi bi-trash"></i> Xóa
+                </a>
+            </td>
+        </tr>
+                }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">Không có bản ghi nào</td>
+            </tr>
+        }
+    </tbody>
+</table>

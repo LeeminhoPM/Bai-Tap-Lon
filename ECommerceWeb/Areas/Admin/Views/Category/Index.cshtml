@@ -51,68 +51,15 @@
                 <div class="col-6">
                     @using(Html.BeginForm("Index", "Category", FormMethod.Get, new{}))
                     {
-                        <div class="input-group input-group-sm">
-                            @Html.TextBox("searchText", new {})
-                            <span class="input-group-append">
-                                <button class="btn btn-info btn-flat" type="submit">Tìm kiếm</button>
-                            </span>
-                        </div>
+                         <div class="input-group input-group-sm"> @Html.TextBox("searchText", null) <span class="input-group-append"> <button class="btn btn-info btn-flat" type="submit">Tìm kiếm</button> </span> </div>
+
                     }
                 </div>
             </div>
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>
-                            <input type="checkbox" id="select-all-cbox" />
-                        </th>
-                        <th class="text-center">STT</th>
-                        <th class="text-center">Tên danh mục</th>
-                        <th class="text-center">Ảnh danh mục</th>
-                        <th class="text-center">Hoạt động</th>
-                        <th class="text-center">Ngày tạo</th>
-                        <th class="text-center"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        @foreach (var item in Model)
-                        {
-                            <tr id="trow-@item.CategoryId">
-                                <td>
-                                    <input type="checkbox" class="select-input" value="@item.CategoryId" />
-                                </td>
-                                <td class="text-center">@item.CategoryId</td>
-                                <td class="text-center">@item.CategoryName</td>
-                                <td class="text-center">
-                                    <img width="100" src="@item.CategoryImageUrl" class="rounded img-fluid object-fit-contain" />
-                                </td>
-                                <td class="text-center">
-                                    <a data-id="@item.CategoryId" class="my-active-btn">
-                                        @(item.IsActive? Html.Raw("<i class=\"bi bi-check-lg text-success\" style=\" -webkit-text-stroke: 1px; \"></i>") : Html.Raw("<i class=\"bi bi-x-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>"))
-                                    </a>
-                                </td>
-                                <td class="text-center">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
-                                <td class="text-center">
-                                    <a asp-area="Admin" asp-controller="Category" asp-action="Upsert" asp-route-id="@item.CategoryId" class="btn btn-primary">
-                                        <i class="bi bi-pencil-square"></i> Sửa
-                                    </a>
-                                    <a asp-action="Index" data-id="@item.CategoryId" class="btn btn-danger my-btn-delete">
-                                        <i class="bi bi-trash"></i> Xóa
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="4">Không có bản ghi nào</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            <div id="categoryTable">
+                    @Html.Partial("_CategoryTable", Model)
+            </div>
+
 
             <div class="row mt-4">
                 <div class="col-12" style="text-align:center">
@@ -225,4 +172,25 @@
             });
         });
     </script>
+
+    //tim kiem
+    <script>
+    $(document).ready(function () {
+    // Khi người dùng gõ vào ô tìm kiếm
+    $("#searchText").on("keyup", function () {
+        var searchText = $(this).val();
+
+        $.ajax({
+            url: '@Url.Action("Index", "Category", new { area = "Admin" })', // gọi action Index
+            type: 'GET',
+            data: { searchText: searchText },
+            success: function (result) {
+                // Ghi đè nội dung bảng bằng PartialView trả về
+                $("#categoryTable").html(result);
+            }
+        });
+    });
+});
+</script>
+
 }

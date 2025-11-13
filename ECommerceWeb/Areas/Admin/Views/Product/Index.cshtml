@@ -53,7 +53,7 @@
                     @using(Html.BeginForm("Index", "Product", FormMethod.Get, new{}))
                     {
                         <div class="input-group input-group-sm">
-                            @Html.TextBox("searchText", new { })
+                            @Html.TextBox("searchText", null)
                             <span class="input-group-append">
                                 <button class="btn btn-info btn-flat" type="submit">Tìm kiếm</button>
                             </span>
@@ -61,82 +61,9 @@
                     }
                 </div>
             </div>
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>
-                            <input type="checkbox" id="select-all-cbox" />
-                        </th>
-                        <th class="text-center">STT</th>
-                        <th class="text-center">Ảnh đại diện</th>
-                        <th class="text-center">Tên sản phẩm</th>
-                        <th class="text-center">Mô tả ngắn</th>
-                        <th class="text-center">Mô tả dài</th>
-                        <th class="text-center">Mô tả thêm</th>
-                        <th class="text-center">Giá</th>
-                        <th class="text-center">Số lượng</th>
-                        <th class="text-center">Đơn vị sản xuất</th>
-                        <th class="text-center">Mã danh mục</th>
-                        <th class="text-center">Mã danh mục con</th>
-                        @* <th class="text-center">Đã bán</th> *@
-                        <th class="text-center">Có thể custom</th>
-                        <th class="text-center">Kích hoạt</th>
-                        <th class="text-center">Ngày tạo</th>
-                        <th class="text-center"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        @foreach (var item in Model)
-                        {
-                            <tr id="trow-@item.ProductId">
-                                <td>
-                                    <input type="checkbox" class="select-input" value="@item.ProductId" />
-                                </td>
-                                <td class="text-center">@item.ProductId</td>
-                                <td class="text-center">
-                                    <img width="50" src="@item.ProductImages.FirstOrDefault(x => x.DefaultImage == true).ImageUrl" />
-                                </td>
-                                <td class="text-center">@item.ProductName</td>
-                                <td class="text-center">@item.ShortDescription</td>
-                                <td class="text-center">@item.LongDescription</td>
-                                <td class="text-center">@item.AdditionalDescription</td>
-                                <td class="text-center">@item.Price</td>
-                                <td class="text-center">@item.Quantity</td>
-                                <td class="text-center">@item.CompanyName</td>
-                                <td class="text-center">@item.CategoryId</td>
-                                <td class="text-center">@item.SubCategoryId</td>
-                                @* <td class="text-center">@item.Sold</td> *@
-                                <td class="text-center">
-                                    <a data-id="@item.ProductId" class="my-active-btn">
-                                        @(item.IsCustomized ? Html.Raw("<i class=\"bi bi-check-lg text-success\" style=\" -webkit-text-stroke: 1px; \"></i>") : Html.Raw("<i class=\"bi bi-x-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>"))
-                                    </a></td>
-                                <td class="text-center">
-                                    <a data-id="@item.ProductId" class="my-active-btn">
-                                        @(item.IsActive ? Html.Raw("<i class=\"bi bi-check-lg text-success\" style=\" -webkit-text-stroke: 1px; \"></i>") : Html.Raw("<i class=\"bi bi-x-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>"))
-                                    </a>
-                                </td>
-                                <td class="text-center">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
-                                <td class="text-center">
-                                    <a asp-action="Upsert" asp-route-id="@item.ProductId" class="btn btn-primary">
-                                        <i class="bi bi-pencil-square"></i> Sửa
-                                    </a>
-                                    <a asp-action="Index" data-id="@item.ProductId" class="btn btn-danger my-btn-delete">
-                                        <i class="bi bi-trash"></i> Xóa
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="4">Không có bản ghi nào</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            <div id="productTable">
+                    @Html.Partial("_ProductTable", Model)
+            </div>
 
             <div class="row mt-4">
                 <div class="col-12" style="text-align:center">
@@ -249,4 +176,22 @@
             });
         });
     </script>
+    <script>
+    $(document).ready(function () {
+    // Khi người dùng gõ vào ô tìm kiếm
+    $("#searchText").on("keyup", function () {
+        var searchText = $(this).val();
+
+        $.ajax({
+            url: '@Url.Action("Index", "Product", new { area = "Admin" })', // gọi action Index
+            type: 'GET',
+            data: { searchText: searchText },
+            success: function (result) {
+                // Ghi đè nội dung bảng bằng PartialView trả về
+                $("#productTable").html(result);
+            }
+        });
+    });
+});
+</script>
 }

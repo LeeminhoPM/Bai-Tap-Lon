@@ -33,7 +33,15 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             {
                 itemList = itemList.Where(x => x.CategoryName.ToLower().Contains(searchText.ToLower()) || x.CategoryId.ToString().ToLower().Contains(searchText.ToLower()));
             }
-            return View(itemList.ToPagedList(pageIndex, pageSize));
+            var model = itemList.ToPagedList(pageIndex, pageSize);
+
+            // Nếu là AJAX request → trả về PartialView
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_CategoryTable", model);
+            }
+
+            return View(model);
         }
 
         public IActionResult Upsert(int? id)
@@ -179,5 +187,8 @@ namespace ECommerceWeb.Areas.Admin.Controllers
             }
             return Json(new { success = false });
         }
+
+        
+
     }
 }
