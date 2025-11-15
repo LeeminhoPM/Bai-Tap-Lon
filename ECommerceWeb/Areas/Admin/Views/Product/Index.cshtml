@@ -77,7 +77,6 @@
                         <th class="text-center">Số lượng</th>
                         <th class="text-center">Đơn vị sản xuất</th>
                         <th class="text-center">Mã danh mục</th>
-                        <th class="text-center">Mã danh mục con</th>
                         @* <th class="text-center">Đã bán</th> *@
                         <th class="text-center">Có thể custom</th>
                         <th class="text-center">Kích hoạt</th>
@@ -96,7 +95,10 @@
                                 </td>
                                 <td class="text-center">@item.ProductId</td>
                                 <td class="text-center">
-                                    <img width="50" src="@item.ProductImages.FirstOrDefault(x => x.DefaultImage == true).ImageUrl" />
+                                    @if (item.ProductImages != null && item.ProductImages.Any(x => x.DefaultImage == true))
+                                    {
+                                        <img width="50" src="@item.ProductImages.FirstOrDefault(x => x.DefaultImage == true).ImageUrl" />
+                                    }
                                 </td>
                                 <td class="text-center">@item.ProductName</td>
                                 <td class="text-center">@item.ShortDescription</td>
@@ -106,7 +108,6 @@
                                 <td class="text-center">@item.Quantity</td>
                                 <td class="text-center">@item.CompanyName</td>
                                 <td class="text-center">@item.CategoryId</td>
-                                <td class="text-center">@item.SubCategoryId</td>
                                 @* <td class="text-center">@item.Sold</td> *@
                                 <td class="text-center">
                                     <a data-id="@item.ProductId" class="my-active-btn">

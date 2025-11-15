@@ -8,8 +8,6 @@ namespace ECommerceWeb.Models.ViewModels
     {
         public Product Product { get; set; }
         [ValidateNever]
-        public List<ProductImage> ProductImageList { get; set; }
-        [ValidateNever]
         public SelectList CategoryList { get; set; }
     }
 }

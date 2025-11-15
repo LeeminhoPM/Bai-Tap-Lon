@@ -1,6 +1,7 @@
 ﻿using ECommerceWeb.Data;
 using ECommerceWeb.Data.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceWeb.Areas.User.Controllers
 {
@@ -11,18 +12,23 @@ namespace ECommerceWeb.Areas.User.Controllers
 
         public ShopController(EcommerceBtlContext context) => _db = context;
 
-        public IActionResult Index(int? id)
+        public async Task<IActionResult> Index()
         {
-            var productList = new List<Product>();
+            var productList = _db.Products.Include(p => p.ProductImages).ToList();
+            return View(productList);
+        }
+
+        public async Task<IActionResult> Details(int? id)
+        {
             if (id == null || id == 0)
             {
-                productList = _db.Products.ToList();
+                return NotFound();
             }
-            else
-            {
-                productList = _db.Products.Where(p => p.CategoryId == id).ToList();
-            }
-            return View(productList);
+            var product = await _db.Products
+                .Include(p => p.ProductImages)
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.ProductId == id);
+            return View(product);
         }
     }
 }

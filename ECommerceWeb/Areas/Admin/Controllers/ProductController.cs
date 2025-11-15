@@ -1,5 +1,6 @@
 ﻿using ECommerceWeb.Data;
 using ECommerceWeb.Data.Models;
+using ECommerceWeb.Function;
 using ECommerceWeb.Models.ViewModels;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Metadata;
@@ -16,11 +17,13 @@ namespace ECommerceWeb.Areas.Admin.Controllers
     {
         private readonly EcommerceBtlContext _db;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private ImageHandler imageHandler;
 
         public ProductController(EcommerceBtlContext db, IWebHostEnvironment webHostEnvironment)
         {
             _db = db;
             _webHostEnvironment = webHostEnvironment;
+            imageHandler = new ImageHandler(webHostEnvironment);
         }
 
         public IActionResult Index(string searchText, int? page)
@@ -55,7 +58,6 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 {
                     CategoryList = categoryList,
                     Product = new Product(),
-                    ProductImageList = new List<ProductImage>(),
                 };
                 return View(productVM);
             }
@@ -68,7 +70,6 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                     {
                         CategoryList = categoryList,
                         Product = productFromDb,
-                        ProductImageList = productFromDb.ProductImages.ToList(),
                     };
                     return View(productVM);
                 }
@@ -98,39 +99,25 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 for (int i = 0; i < files.Count; i++)
                 {
                     ProductImage productImage = new();
-                    if (files[i] != null)
-                    {
-                        // Tên file mới = Id độc nhất + đuôi file (.jpg, .png, .jpeg, ...)
-                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(files[i].FileName);
-                        // Địa chỉ của thư mục sẽ được copy ảnh sang
-                        string categoryPath = Path.Combine(wwwRootPath, @"images\product");
-
-                        // Copy ảnh vừa chọn vào thư mục
-                        using (var fileStream = new FileStream(Path.Combine(categoryPath, fileName), FileMode.Create))
-                        {
-                            files[i].CopyTo(fileStream);
-                        }
-
-                        // Gán ImageUrl = đường dẫn của ảnh vừa copy
-                        productImage.ImageUrl = @"\images\product\" + fileName;
-                    }
-
+                    productImage.ImageUrl = imageHandler.SaveImage(files[i], "images/product/", productImage.ImageUrl);
                     productImage.ProductId = obj.Product.ProductId;
                     obj.Product.ProductImages.Add(productImage);
                 }
                 _db.SaveChanges();
-                obj.ProductImageList = _db.Products.Include(p => p.ProductImages)
-                    .FirstOrDefault(u => u.ProductId == obj.Product.ProductId)
-                    .ProductImages.ToList();
-
-                _db.ProductImages
-                   .Where(x => x.ProductId == obj.Product.ProductId)
-                   .ExecuteUpdate(s => s.SetProperty(p => p.DefaultImage, p => false));
-
-                _db.ProductImages
-                    .Where(x => x.ImageId == obj.ProductImageList[isDefault - 1].ImageId)
-                    .ExecuteUpdate(s => s.SetProperty(p => p.DefaultImage, p => true));
-
+                _db.ProductImages.ToList().ForEach(img =>
+                {
+                    if (img.ProductId == obj.Product.ProductId)
+                    {
+                        if (isDefault == img.ImageId)
+                        {
+                            img.DefaultImage = true;
+                        }
+                        else
+                        {
+                            img.DefaultImage = false;
+                        }
+                    }
+                });
                 _db.SaveChanges();
                 return RedirectToAction("Index");
             }
@@ -148,17 +135,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 ProductImage? image = _db.ProductImages.FirstOrDefault(u => u.ImageId == id);
                 if (image != null)
                 {
-                    if (!string.IsNullOrEmpty(image.ImageUrl))
-                    {
-                        // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                        var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('\\'));
-
-                        // Nếu có rồi thì xóa luôn cái cũ
-                        if (System.IO.File.Exists(oldImagePath))
-                        {
-                            System.IO.File.Delete(oldImagePath);
-                        }
-                    }
+                    imageHandler.DeleteImage(image.ImageUrl);
                     _db.ProductImages.Remove(image);
                     _db.SaveChanges();
                     return Json(new { success = true });
@@ -177,16 +154,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 {
                     foreach (var image in productFromDb.ProductImages)
                     {
-                        if (!string.IsNullOrEmpty(image.ImageUrl))
-                        {
-                            // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('\\'));
-                            // Nếu có rồi thì xóa luôn cái cũ
-                            if (System.IO.File.Exists(oldImagePath))
-                            {
-                                System.IO.File.Delete(oldImagePath);
-                            }
-                        }
+                        imageHandler.DeleteImage(image.ImageUrl);
                     }
                     _db.Products.Remove(productFromDb);
                     _db.SaveChanges();
@@ -209,16 +177,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                         Product? productFromDb = _db.Products.Include(u => u.ProductImages).FirstOrDefault(u => u.ProductId == int.Parse(item));
                         foreach (var image in productFromDb.ProductImages)
                         {
-                            if (!string.IsNullOrEmpty(image.ImageUrl))
-                            {
-                                // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                                var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('\\'));
-                                // Nếu có rồi thì xóa luôn cái cũ
-                                if (System.IO.File.Exists(oldImagePath))
-                                {
-                                    System.IO.File.Delete(oldImagePath);
-                                }
-                            }
+                            imageHandler.DeleteImage(image.ImageUrl);
                         }
                         _db.Products.Remove(productFromDb);
                         _db.SaveChanges();
