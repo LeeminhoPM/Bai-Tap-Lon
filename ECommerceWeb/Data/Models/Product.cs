@@ -21,6 +21,7 @@ public partial class Product
     [MaxLength(200)]
     public string? ShortDescription { get; set; }
 
+    // Dùng [Column(TypeName = "nvarchar(MAX)")] nếu bạn lo ngại về việc EF Core không tạo đúng nvarchar(max)
     [DisplayName("Chi tiết sản phẩm")]
     public string? LongDescription { get; set; }
 
@@ -32,7 +33,8 @@ public partial class Product
     public decimal Price { get; set; }
 
     [Required(ErrorMessage = "Nhập số lượng sản phẩm")]
-    [DisplayName("Só lượng sản phẩm")]
+    // Sửa lỗi chính tả: "Só lượng sản phẩm" -> "Số lượng sản phẩm"
+    [DisplayName("Số lượng sản phẩm")]
     public int Quantity { get; set; }
 
     [DisplayName("Kích thước sản phẩm")]
@@ -77,6 +79,9 @@ public partial class Product
     [ValidateNever]
     [ForeignKey("CategoryId")]
     public virtual Category Category { get; set; } = null!;
+
+    // Đảm bảo rằng Category và SubCategory (nếu có) cũng có các trường Tiếng Việt 
+    // được cấu hình Unicode trong DB.
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 

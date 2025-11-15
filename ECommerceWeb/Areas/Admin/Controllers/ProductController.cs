@@ -88,8 +88,15 @@ namespace ECommerceWeb.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upsert(ProductVM obj, List<IFormFile> files, int isDefault)
         {
+            // Đảm bảo Product.ProductImages không phải là null
+            if (obj.Product.ProductImages == null)
+            {
+                obj.Product.ProductImages = new List<ProductImage>();
+            }
+
             if (ModelState.IsValid)
             {
+                // 1. Thêm hoặc Cập nhật Product
                 obj.Product.CreatedDate = DateTime.Now;
                 if (obj.Product.ProductId == 0)
                 {
@@ -99,52 +106,78 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 {
                     _db.Products.Update(obj.Product);
                 }
-                _db.SaveChanges();
+                _db.SaveChanges(); // Lưu để có ProductId cho các bước tiếp theo
 
-                // Địa chỉ của thư mục wwwroot
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
+
+                // Danh sách tạm thời để lưu ProductImage mới được tạo
+                var newProductImages = new List<ProductImage>();
+
+                // 2. Xử lý và Lưu từng File ảnh
                 for (int i = 0; i < files.Count; i++)
                 {
-                    ProductImage productImage = new();
-                    if (files[i] != null)
+                    IFormFile file = files[i];
+                    if (file != null && file.Length > 0)
                     {
-                        // Tên file mới = Id độc nhất + đuôi file (.jpg, .png, .jpeg, ...)
-                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(files[i].FileName);
-                        // Địa chỉ của thư mục sẽ được copy ảnh sang
-                        string categoryPath = Path.Combine(wwwRootPath, @"images\product");
+                        ProductImage productImage = new();
+                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                        string categoryPath = Path.Combine(wwwRootPath, @"images\products");
 
                         // Copy ảnh vừa chọn vào thư mục
                         using (var fileStream = new FileStream(Path.Combine(categoryPath, fileName), FileMode.Create))
                         {
-                            files[i].CopyTo(fileStream);
+                            file.CopyTo(fileStream);
                         }
 
-                        // Gán ImageUrl = đường dẫn của ảnh vừa copy
-                        productImage.ImageUrl = @"\images\product\" + fileName;
+                        // Gán ImageUrl và ProductId
+                        productImage.ImageUrl = @"\images\products\" + fileName;
+                        productImage.ProductId = obj.Product.ProductId;
+
+                        // Thêm vào DBContext
+                        _db.ProductImages.Add(productImage);
+                        // Thêm vào danh sách tạm thời để xác định DefaultImage sau này
+                        newProductImages.Add(productImage);
                     }
-
-                    productImage.ProductId = obj.Product.ProductId;
-                    obj.Product.ProductImages.Add(productImage);
                 }
-                _db.SaveChanges();
-                obj.ProductImageList = _db.Products.Include(p => p.ProductImages)
-                    .FirstOrDefault(u => u.ProductId == obj.Product.ProductId)
-                    .ProductImages.ToList();
+                _db.SaveChanges(); // Lưu tất cả ProductImage mới để có ImageId
 
-                _db.ProductImages
-                   .Where(x => x.ProductId == obj.Product.ProductId)
-                   .ExecuteUpdate(s => s.SetProperty(p => p.DefaultImage, p => false));
+                // 3. Cập nhật ảnh mặc định (DefaultImage)
 
-                _db.ProductImages
-                    .Where(x => x.ImageId == obj.ProductImageList[isDefault - 1].ImageId)
-                    .ExecuteUpdate(s => s.SetProperty(p => p.DefaultImage, p => true));
+                // Kiểm tra xem có ảnh nào mới được thêm không và isDefault có hợp lệ không
+                if (newProductImages.Count > 0)
+                {
+                    // Đặt tất cả ảnh hiện tại của sản phẩm về DefaultImage = false
+                    _db.ProductImages
+                       .Where(x => x.ProductId == obj.Product.ProductId)
+                       .ExecuteUpdate(s => s.SetProperty(p => p.DefaultImage, p => false));
 
-                _db.SaveChanges();
+                    // Xác định index ảnh mặc định. isDefault là 1-based, index là 0-based.
+                    // Đảm bảo index nằm trong phạm vi [1, newProductImages.Count]
+                    int defaultImageIndex = Math.Max(1, Math.Min(isDefault, newProductImages.Count));
+
+                    // Lấy ImageId của ảnh được chọn làm mặc định từ danh sách ảnh mới đã được lưu (và có ImageId)
+                    int defaultImageIdToSet = newProductImages[defaultImageIndex - 1].ImageId;
+
+                    // Cập nhật ảnh mặc định
+                    _db.ProductImages
+                        .Where(x => x.ImageId == defaultImageIdToSet)
+                        .ExecuteUpdate(s => s.SetProperty(p => p.DefaultImage, p => true));
+
+                    // NOTE: Đã loại bỏ _db.SaveChanges() cuối cùng vì ExecuteUpdate đã thực thi trên DB
+                }
+                else if (obj.Product.ProductId != 0)
+                {
+                    // Trường hợp cập nhật nhưng không có ảnh mới, có thể cần logic để giữ ảnh mặc định cũ
+                    // (hoặc không làm gì nếu ảnh mặc định đã được thiết lập trước đó).
+                }
+
                 return RedirectToAction("Index");
             }
             else
             {
+                // ... (Giữ nguyên logic lỗi)
                 obj.CategoryList = new SelectList(_db.Categories, "CategoryId", "CategoryName");
+                // Bạn có thể cần load lại ProductImageList nếu đang cập nhật
                 return View(obj);
             }
         }

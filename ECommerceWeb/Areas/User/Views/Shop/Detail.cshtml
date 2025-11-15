@@ -1,0 +1,155 @@
+﻿@model ECommerceWeb.Data.Models.Product
+@* Thay thế bằng namespace Model Product thực tế của bạn *@
+
+@{
+    ViewData["Title"] = Model.ProductName;
+    Layout = "_Layout";
+
+    // Định nghĩa thư mục gốc của ảnh sản phẩm, dựa trên cấu trúc: wwwroot/images/products
+    const string IMAGE_BASE_PATH = "/images/products/";
+
+    // LẤY HÌNH ẢNH
+    var images = Model.ProductImages.OrderByDescending(img => img.DefaultImage).ToList();
+    string defaultImageUrl = "/images/product-default.jpg";
+
+    // Nếu không có ảnh nào, thêm ảnh mặc định để tránh lỗi hiển thị
+    if (!images.Any())
+    {
+        // Tên ProductImage model có thể khác namespace thực tế của bạn
+        images.Add(new ECommerceWeb.Data.Models.ProductImage
+        {
+            ImageUrl = defaultImageUrl,
+            DefaultImage = true
+        });
+    }
+}
+
+<section class="sec-product-detail bg0 p-t-65 p-b-60">
+    <div class="container">
+        <div class="row">
+
+            @* --- Cột Hình Ảnh (Gallery/Slider) --- *@
+            <div class="col-md-6 col-lg-7 p-b-30">
+                <div class="p-l-25 p-r-30 p-lr-0-lg">
+
+                    @* BẮT ĐẦU: SLIDER/GALLERY SẢN PHẨM *@
+                    <div class="wrap-slick3 flex-sb flex-w">
+                        @* 1. NÚT CHUYỂN SLIDE/DOTS *@
+                        <div class="wrap-slick3-dots"></div>
+                        <div class="wrap-slick3-arrows flex-sb-m flex-w"></div>
+
+                        <div class="slick3 gallery-lb">
+                            @foreach (var image in images)
+                            {
+                                // ======================================================================================
+                                // FIX LỖI ĐƯỜNG DẪN: Đảm bảo đường dẫn đầy đủ
+                                // ======================================================================================
+                                var rawUrl = image.ImageUrl;
+
+                                // Nếu URL không phải là URL đầy đủ (bắt đầu bằng '/' hoặc 'http'), ta nối với đường dẫn gốc
+                                var fullImageUrl = (rawUrl.StartsWith("/") || rawUrl.StartsWith("http"))
+                                ? rawUrl
+                                : IMAGE_BASE_PATH + rawUrl;
+
+                                // Nếu chỉ là ảnh mặc định, sử dụng luôn URL mặc định
+                                if (fullImageUrl == defaultImageUrl) fullImageUrl = defaultImageUrl;
+
+                                <div class="item-slick3" data-thumb="@fullImageUrl">
+                                    <div class="wrap-pic-w pos-relative">
+                                        <img src="@fullImageUrl" alt="IMG-PRODUCT">
+
+                                        @* Liên kết Zoom/Mở rộng *@
+                                        <a class="flex-c-m size-108 how-pos1 bor0 fs-16 cl10 bg0 hov-btn3 trans-04"
+                                           href="@fullImageUrl">
+                                            <i class="fa fa-expand"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    @* KẾT THÚC: SLIDER/GALLERY SẢN PHẨM *@
+
+                </div>
+            </div>
+
+            @* --- Cột Thông Tin Chi Tiết Sản Phẩm --- *@
+            <div class="col-md-6 col-lg-5 p-b-30">
+                <div class="p-r-50 p-t-5 p-lr-0-lg">
+
+                    @* Tên Sản Phẩm *@
+                    <h4 class="mtext-105 cl2 js-name-detail p-b-14">
+                        @Model.ProductName
+                    </h4>
+
+                    @* Giá Sản Phẩm *@
+                    <span class="mtext-106 cl2">
+                        @Model.Price.ToString("N0") VNĐ
+                    </span>
+
+                    @* Mô tả Ngắn *@
+                    <p class="stext-102 cl3 p-t-23">
+                        @Model.ShortDescription
+                    </p>
+
+                    @* --- Form Thêm vào Giỏ hàng --- *@
+                    <div class="p-t-33">
+                        <div class="flex-w flex-r-m p-b-10">
+                            <div class="size-204 flex-w flex-m respon6-next">
+                                <div class="wrap-num-product flex-w m-r-20 m-tb-10">
+                                    <div class="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m">
+                                        <i class="fs-16 zmdi zmdi-minus"></i>
+                                    </div>
+
+                                    <input class="mtext-104 cl3 txt-center num-product" type="number"
+                                           name="num-product" value="1">
+
+                                    <div class="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m">
+                                        <i class="fs-16 zmdi zmdi-plus"></i>
+                                    </div>
+                                </div>
+
+                                @* Nút Thêm vào Giỏ hàng *@
+                                <button class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 js-addcart-detail">
+                                    Thêm vào giỏ hàng
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Thông tin SKU/Danh mục *@
+                    <div class="p-t-65">
+                        <span class="stext-102 cl3">
+                            SKU: @Model.ProductId
+                        </span>
+
+                        <p class="stext-102 cl3">
+                            Danh mục: **@(Model.Category?.CategoryName ?? "Không xác định")**
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* --- PHẦN TAB MÔ TẢ CHI TIẾT --- *@
+        <div class="bor10 m-t-50 p-t-43 p-b-40">
+            <div class="tab01">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item p-b-10">
+                        <a class="nav-link active" data-toggle="tab" href="#description" role="tab">Mô tả</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-t-43">
+                    <div class="tab-pane fade show active" id="description" role="tabpanel">
+                        <div class="how-pos2 p-lr-15-md">
+                            <p class="stext-102 cl6 p-b-26">
+                                @Html.Raw(Model.LongDescription)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

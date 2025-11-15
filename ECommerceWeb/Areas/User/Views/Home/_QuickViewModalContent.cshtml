@@ -1,0 +1,62 @@
+﻿@model ECommerceWeb.Data.Models.Product
+
+@{
+    var images = Model.ProductImages?.ToList() ?? new List<ProductImage>();
+    var firstImg = images.FirstOrDefault()?.ImageUrl ?? "no-image.png";
+
+    const string BASE = "/images/products/";
+}
+
+<div class="container p-t-60 p-b-30">
+
+    <div class="row">
+        <!-- Hình ảnh -->
+        <div class="col-md-6">
+            <img src="@($"{BASE}{firstImg}")"
+                 class="img-fluid rounded border"
+                 style="max-height: 420px; object-fit: contain;" />
+
+            <div class="d-flex gap-3 mt-3 flex-wrap">
+                @foreach (var img in images)
+                {
+                    <img src="@($"{BASE}{img.ImageUrl}")"
+                         width="90"
+                         height="90"
+                         class="rounded border p-1"
+                         style="object-fit: contain; cursor: pointer;" />
+                }
+            </div>
+        </div>
+
+        <!-- Thông tin -->
+        <div class="col-md-6">
+            <h3 class="fw-bold">@Model.ProductName</h3>
+
+            <h4 class="text-danger fw-bold" style="font-size: 26px">
+                @string.Format("{0:N0} đ", Model.Price)
+            </h4>
+
+            <p class="text-muted mt-3">@Model.ShortDescription</p>
+
+            <div class="mt-4">
+                <h5>Chi tiết sản phẩm</h5>
+                <p>@Model.LongDescription</p>
+            </div>
+
+            <div class="mt-4 d-flex gap-3">
+                <a asp-area="User"
+                   asp-action="Detail"
+                   asp-controller="Home"
+                   asp-route-id="@Model.ProductId"
+                   class="btn btn-primary px-4 py-2">
+                    Xem chi tiết
+                </a>
+
+                <button class="btn btn-secondary px-4 py-2" onclick="window.history.back();">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>

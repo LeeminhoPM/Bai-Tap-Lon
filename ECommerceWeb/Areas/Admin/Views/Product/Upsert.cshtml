@@ -21,7 +21,6 @@
     </ul>
 }
 
-<!-- Content Header (Page header) -->
 <section class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -35,12 +34,10 @@
                 </ol>
             </div>
         </div>
-    </div><!-- /.container-fluid -->
+    </div>
 </section>
 
-<!-- Main content -->
 <section class="content">
-    <!-- Default box -->
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Thông tin @ViewBag.Title</h3>
@@ -58,8 +55,7 @@
                                 <li class="nav-item"><a class="nav-link" href="#timeline" data-toggle="tab">Hình ảnh</a></li>
                                 <li class="nav-item"><a class="nav-link" href="#settings" data-toggle="tab">SEO</a></li>
                             </ul>
-                        </div><!-- /.card-header -->
-                        <div class="card-body">
+                        </div><div class="card-body">
                             <div class="tab-content">
                                 <div class="active tab-pane" id="activity">
                                     <div class="row">
@@ -111,11 +107,27 @@
                                     </div>
 
                                     <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label asp-for="Product.Size"></label>
+                                                <input asp-for="Product.Size" class="form-control" placeholder="Ví dụ: S, M, L, XL hoặc 39, 40">
+                                                <span asp-validation-for="Product.Size" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label asp-for="Product.Color"></label>
+                                                <input asp-for="Product.Color" class="form-control" placeholder="Ví dụ: Đỏ, Xanh, Đen, Trắng">
+                                                <span asp-validation-for="Product.Color" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
                                         <div class="col-3">
                                             <div class="form-group">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" asp-for="Product.IsActive" class="custom-control-input">
-                                                    <label class="custom-control-label" asp-for="Product.IsActive"></label>
+                                                    <input type="checkbox" asp-for="Product.IsActive" class="custom-control-input" id="isActiveCheck">
+                                                    <label class="custom-control-label" for="isActiveCheck">Hiển thị</label>
                                                     <span asp-validation-for="Product.IsActive" class="text-danger"></span>
                                                 </div>
                                             </div>
@@ -123,8 +135,8 @@
                                         <div class="col-3">
                                             <div class="form-group">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" asp-for="Product.IsCustomized" class="custom-control-input">
-                                                    <label class="custom-control-label" asp-for="Product.IsCustomized"></label>
+                                                    <input type="checkbox" asp-for="Product.IsCustomized" class="custom-control-input" id="isCustomizedCheck">
+                                                    <label class="custom-control-label" for="isCustomizedCheck">Không Hiển Thị</label>
                                                     <span asp-validation-for="Product.IsCustomized" class="text-danger"></span>
                                                 </div>
                                             </div>
@@ -132,8 +144,8 @@
                                         <div class="col-3">
                                             <div class="form-group">
                                                 <label asp-for="Product.CategoryId"></label>
-                                                <select id="PCategory" asp-for="Product.CategoryId" asp-items="@Model.CategoryList" class="form-select">
-                                                    <option disabled selected>Open this select menu</option>
+                                                <select id="PCategory" asp-for="Product.CategoryId" asp-items="@Model.CategoryList" class="form-control select2">
+                                                    <option disabled selected>--- Chọn Danh mục ---</option>
                                                 </select>
                                                 <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
                                             </div>
@@ -141,8 +153,8 @@
                                         <div class="col-3">
                                             <div class="form-group">
                                                 <label asp-for="Product.SubCategoryId"></label>
-                                                <select id="PSubCategory" asp-for="Product.SubCategoryId" class="form-select">
-                                                    <option disabled selected>Open this select menu</option>
+                                                <select id="PSubCategory" asp-for="Product.SubCategoryId" class="form-control select2">
+                                                    <option disabled selected>--- Chọn Danh mục con ---</option>
                                                 </select>
                                                 <span asp-validation-for="Product.SubCategoryId" class="text-danger"></span>
                                             </div>
@@ -152,7 +164,6 @@
                                     <a asp-action="Index" class="btn btn-danger">Quay lại</a>
                                     <button type="submit" class="btn btn-primary">@(Model.Product.ProductId == 0 ? "Thêm mới" : "Cập nhật")</button>
                                 </div>
-                                <!-- /.tab-pane -->
                                 <div class="tab-pane" id="timeline">
                                     <div class="row">
                                         <div class="col-md-12 text-right">
@@ -169,10 +180,10 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @if(Model.ProductImageList == null)
+                                                    @if (Model.ProductImageList == null)
                                                     {
                                                         Model.ProductImageList = new List<ProductImage>();
-													}
+                                                    }
                                                     @for (int i = 0; i < Model.ProductImageList.Count; i++)
                                                     {
                                                         <tr id="trow_@(i + 1)">
@@ -202,40 +213,38 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- /.tab-pane -->
-
                                 <div class="tab-pane" id="settings">
+                                    <div class="card-body">
+                                        <p>Nội dung SEO (ví dụ: Meta Title, Meta Description) sẽ được thêm vào khu vực này.</p>
+                                    </div>
                                 </div>
-                                <!-- /.tab-pane -->
                             </div>
-                            <!-- /.tab-content -->
-                        </div><!-- /.card-body -->
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
-        <!-- /.card-body -->
         <div class="card-footer">
         </div>
-        <!-- /.card-footer-->
     </div>
-    <!-- /.card -->
 </section>
-<!-- /.content -->
 @section scripts {
     <script>
         $(document).ready(function() {
+            // Cập nhật Select/Dropdown để dùng class form-control và select2 (nếu có thư viện AdminLTE)
             $("#PCategory").on('change', function() {
                 var url = "@Url.Content("~/Admin/Product/getSubCategoryById")";
                 $.getJSON(url, { id: $("#PCategory").val() }, function(data) {
                     $('#PSubCategory').empty();
-                    $('#PSubCategory').append("<option>Select SubCategory</option>");
+                    $('#PSubCategory').append("<option disabled selected>--- Chọn Danh mục con ---</option>");
                     var optionsArray = $.map(data, function(optionData, index) {
                         return '<option value=' + optionData.subCategoryId + '>' + optionData.subCategoryName + '</option>';
                     });
                     $('#PSubCategory').append(optionsArray.join(''));
                 });
             });
+
+            // ... (Phần xử lý ImageChooser và Delete giữ nguyên) ...
 
             $('#imageChooser').on('change', function () {
                 const files = this.files;
@@ -245,22 +254,27 @@
                             const reader = new FileReader();
                             reader.onload = function (e) {
                                 var rowCount = $('#imagesPreview tbody tr').length + 1;
+                                // Đảm bảo input radio isDefault được đặt đúng tên
+                                var radioInput = `<input name="isDefault" type="radio" value="${rowCount}" />`;
+
+                                // Nếu đây là ảnh đầu tiên được thêm trong phiên này, tự động chọn làm mặc định
+                                if (rowCount === 1 && $('#imagesPreview tbody tr input[name="isDefault"]:checked').length === 0) {
+                                     radioInput = `<input name="isDefault" type="radio" value="${rowCount}" checked="checked" />`;
+                                }
+
                                 var row = `<tr id="trow_${rowCount}">
                                     <td>${rowCount}</td>
                                     <td>
                                         <img src="${e.target.result}" width="100">
                                     </td>
                                     <td>
-                                        <input name="isDefault" type="radio" value="${rowCount}" />
+                                        ${radioInput}
                                     </td>
                                     <td>
                                         <button type="button" data-id="${rowCount}" class="imageDeleteBtn btn btn-sm btn-danger">Xóa</button>
                                     </td>
                                 </tr>`;
                                 $('#imagesPreview tbody').append(row);
-                                if (rowCount === 1) {
-                                    $('#imagesPreview tbody tr td input').attr('checked', 'checked');
-                                }
                             };
                             reader.readAsDataURL(file);
                         }
@@ -269,22 +283,33 @@
             });
 
             $(document).on('click', '.imageDeleteBtn', function(){
-                debugger;
                 var conf = confirm("Bạn muốn xóa ảnh này không");
                 if (conf === true) {
                     var _id = $(this).data('id');
-                    $('#trow_' + _id).fadeTo('fast', 0, function() {
+                    var $rowToRemove = $('#trow_' + _id);
+                    var wasChecked = $rowToRemove.find('input[name="isDefault"]').is(':checked'); // Kiểm tra nếu ảnh bị xóa là ảnh mặc định
+
+                    $rowToRemove.fadeTo('fast', 0, function() {
                         $(this).remove();
                         $('#imagesPreview tbody tr').each(function (index) {
                             var newIndex = index + 1;
-                            $(this).find('td:first').text(newIndex);
-                            $(this).attr('id', 'trow_' + newIndex);
-                            $(this).find('.imageDeleteBtn').data('id', newIndex);
-                            $(this).find('input[name="isDefault"]').val(newIndex);
-                            if ($(this).find('input[name="isDefault"]').val() == 1) {
-                                $(this).find('input[name="isDefault"]').attr('checked', 'checked');
-                            }
+                            var $row = $(this);
+                            $row.find('td:first').text(newIndex);
+                            $row.attr('id', 'trow_' + newIndex);
+                            $row.find('.imageDeleteBtn').data('id', newIndex);
+                            $row.find('input[name="isDefault"]').val(newIndex);
+                            // Cập nhật name cho input hidden của ảnh đã lưu (nếu có)
+                            $row.find('input[name^="ProductImageList"]').each(function() {
+                                var oldName = $(this).attr('name');
+                                var newName = oldName.replace(/\[\d+\]/, `[${index}]`);
+                                $(this).attr('name', newName);
+                            });
                         });
+
+                        // Nếu ảnh mặc định bị xóa, đặt ảnh đầu tiên còn lại làm mặc định (nếu có ảnh)
+                        if (wasChecked && $('#imagesPreview tbody tr').length > 0) {
+                            $('#imagesPreview tbody tr:first').find('input[name="isDefault"]').prop('checked', true);
+                        }
                     });
                 }
             });
@@ -293,21 +318,36 @@
                 var id = $(this).data("id");
                 var conf = confirm("Bạn muốn xóa bản ghi này không");
                 if (conf == true) {
+                    var $rowToRemove = $('#trow_' + id);
+                    var wasChecked = $rowToRemove.find('input[name="isDefault"]').is(':checked'); // Kiểm tra nếu ảnh bị xóa là ảnh mặc định
+
                     $.ajax({
                         url: "/Admin/Product/DeleteProductImage",
                         type: "POST",
                         data: { id: id },
                         success: function(rs) {
                             if (rs.success) {
-                                 $('#trow_' + id).fadeTo('fast', 0, function() {
+                                $('#trow_' + id).fadeTo('fast', 0, function() {
                                     $(this).remove();
                                     $('#imagesPreview tbody tr').each(function (index) {
                                         var newIndex = index + 1;
-                                        $(this).find('td:first').text(newIndex);
-                                        $(this).attr('id', 'trow_' + newIndex);
-                                        $(this).find('.imageDeleteBtn').data('id', newIndex);
-                                        $(this).find('input[name="isDefault"]').val(newIndex);
+                                        var $row = $(this);
+                                        $row.find('td:first').text(newIndex);
+                                        $row.attr('id', 'trow_' + newIndex);
+                                        $row.find('.imageDeleteBtn').data('id', newIndex);
+                                        $row.find('input[name="isDefault"]').val(newIndex);
+                                        // Cập nhật name cho input hidden của ảnh đã lưu
+                                        $row.find('input[name^="ProductImageList"]').each(function() {
+                                            var oldName = $(this).attr('name');
+                                            var newName = oldName.replace(/\[\d+\]/, `[${index}]`);
+                                            $(this).attr('name', newName);
+                                        });
                                     });
+
+                                    // Nếu ảnh mặc định bị xóa, đặt ảnh đầu tiên còn lại làm mặc định (nếu có ảnh)
+                                    if (wasChecked && $('#imagesPreview tbody tr').length > 0) {
+                                        $('#imagesPreview tbody tr:first').find('input[name="isDefault"]').prop('checked', true);
+                                    }
                                 });
                             }
                             else {
