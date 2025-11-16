@@ -18,7 +18,6 @@
     </ul>
 }
 
-<!-- Content Header (Page header) -->
 <section class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -32,12 +31,9 @@
                 </ol>
             </div>
         </div>
-    </div><!-- /.container-fluid -->
-</section>
+    </div></section>
 
-<!-- Main content -->
 <section class="content">
-    <!-- Default box -->
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Danh sách @ViewBag.Title</h3>
@@ -50,10 +46,10 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-6">
-                    @using(Html.BeginForm("Index", "Product", FormMethod.Get, new{}))
+                    @using (Html.BeginForm("Index", "Product", FormMethod.Get, new { }))
                     {
                         <div class="input-group input-group-sm">
-                            @Html.TextBox("searchText", null)
+                            @Html.TextBox("searchText", null, new { id = "searchText", @class = "form-control float-right", placeholder = "Tìm kiếm..." })
                             <span class="input-group-append">
                                 <button class="btn btn-info btn-flat" type="submit">Tìm kiếm</button>
                             </span>
@@ -61,13 +57,14 @@
                     }
                 </div>
             </div>
+
             <div id="productTable">
                     @Html.Partial("_ProductTable", Model)
             </div>
 
             <div class="row mt-4">
                 <div class="col-12" style="text-align:center">
-                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, pageSize = 10 }), 
+                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, pageSize = 10, searchText = ViewBag.SearchText }), 
                     new PagedListRenderOptions(){
                         UlElementClasses = new[] { "pagination", "justify-content-center" },
                         LiElementClasses = new string[] { "page-item" },
@@ -76,42 +73,37 @@
                 </div>
             </div>
         </div>
-        <!-- /.card-body -->
         <div class="card-footer">
         </div>
-        <!-- /.card-footer-->
-    </div>
-    <!-- /.card -->
-</section>
-<!-- /.content -->
+        </div>
+    </section>
 @section scripts {
     <script>
         $(document).ready(function () {
+            // --- Logic Xóa hàng loạt, Xóa đơn lẻ, Kích hoạt (Active) giữ nguyên từ code gốc của bạn ---
+            // ... (Đoạn mã JavaScript cho DeleteAll, SelectAll, Delete đơn lẻ, IsActive) ...
+
+            // Xóa hàng loạt
             $("body").on("click", "#delete-all-btn", function(e) {
                 e.preventDefault();
                 var str = "";
-                var checkboxs = $(this).parents(".card").find("tr td input:checkbox");
+                var checkboxs = $(this).parents(".card").find("tr td input.select-input:checked"); // Chỉ chọn checkbox có class select-input VÀ đã được check
                 var i = 0;
                 checkboxs.each(function() {
-                    if (this.checked) {
-                        checkboxs.attr("selected", "checked");
-                        if (i === 0) {
-                            str += $(this).val();
-                        } else {
-                            str += ", " + $(this).val();
-                        }
-                        i++;
+                    if (i === 0) {
+                        str += $(this).val();
                     } else {
-                        checkboxs.attr("selected", "");
+                        str += ", " + $(this).val();
                     }
+                    i++;
                 });
                 if (str.length > 0) {
-                    var conf = confirm("Bạn có muốn xóa bản ghi này không");
+                    var conf = confirm("Bạn có muốn xóa " + i + " bản ghi đã chọn này không?");
                     if (conf === true) {
                         $.ajax({
                             url: "/Admin/Product/DeleteAll",
                             type: "POST",
-                            data: {ids : str },
+                            data: { ids : str },
                             success: function(rs) {
                                 if (rs.success) {
                                     location.reload();
@@ -119,22 +111,19 @@
                             }
                         });
                     }
+                } else {
+                    alert("Vui lòng chọn ít nhất một sản phẩm để xóa.");
                 }
             });
 
+            // Chọn tất cả
             $("body").on("change", "#select-all-cbox", function() {
                 var checkStatus = this.checked;
-                var checkboxs = $(this).parents(".card-body").find("tr td input:checkbox");
-                checkboxs.each(function() {
-                    this.checked = checkStatus;
-                    if (this.checked) {
-                        checkboxs.attr("selected", "checked");
-                    } else {
-                        checkboxs.attr("selected", "");
-                    }
-                });
+                var checkboxs = $(this).parents(".card-body").find("tr td input.select-input");
+                checkboxs.prop('checked', checkStatus);
             });
 
+            // Xóa đơn lẻ
             $("body").on("click", ".my-btn-delete", function () {
                 var id = $(this).data("id");
                 var conf = confirm("Bạn muốn xóa bản ghi này không");
@@ -155,6 +144,7 @@
                 }
             });
 
+            // Kích hoạt/Vô hiệu hóa (IsActive)
             $("body").on("click", ".my-active-btn", function () {
                 var id = $(this).data("id");
                 var btn = $(this);
@@ -168,30 +158,31 @@
                                 btn.html("<i class=\"bi bi-check-lg text-success\" style=\" -webkit-text-stroke: 1px; \"></i>");
                             }
                             else {
-                                btn.html("<i class=\"bi bi-check-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>");
+                                btn.html("<i class=\"bi bi-x-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>");
                             }
                         }
                     }
                 });
             });
+
+            // --- Logic Tìm kiếm AJAX (Keyup) ---
+            $("#searchText").on("keyup", function () {
+                var searchText = $(this).val();
+
+                // Dùng Ajax để lấy PartialView đã được lọc/tìm kiếm
+                $.ajax({
+                    url: '@Url.Action("Index", "Product", new { area = "Admin" })',
+                    type: 'GET',
+                    data: { searchText: searchText, page: 1, pageSize: 10 }, // Đảm bảo luôn quay về trang 1 khi tìm kiếm
+                    success: function (result) {
+                        // Thay thế toàn bộ nội dung trong thẻ div#productTable bằng PartialView mới (chứa cả bảng và phân trang)
+                        $("#productTable").html($(result).find("#productTable").html());
+                        
+                        // Cập nhật lại phần phân trang
+                        $(".row.mt-4 .col-12").html($(result).find(".row.mt-4 .col-12").html());
+                    }
+                });
+            });
         });
     </script>
-    <script>
-    $(document).ready(function () {
-    // Khi người dùng gõ vào ô tìm kiếm
-    $("#searchText").on("keyup", function () {
-        var searchText = $(this).val();
-
-        $.ajax({
-            url: '@Url.Action("Index", "Product", new { area = "Admin" })', // gọi action Index
-            type: 'GET',
-            data: { searchText: searchText },
-            success: function (result) {
-                // Ghi đè nội dung bảng bằng PartialView trả về
-                $("#productTable").html(result);
-            }
-        });
-    });
-});
-</script>
 }

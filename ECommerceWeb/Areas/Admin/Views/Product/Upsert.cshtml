@@ -123,7 +123,7 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-3">
+                                        <div class="col-4">
                                             <div class="form-group">
                                                 <div class="custom-control custom-checkbox">
                                                     <input type="checkbox" asp-for="Product.IsActive" class="custom-control-input" id="isActiveCheck">
@@ -132,6 +132,7 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        @*
                                         <div class="col-3">
                                             <div class="form-group">
                                                 <div class="custom-control custom-checkbox">
@@ -141,7 +142,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-3">
+                                        *@
+                                        <div class="col-4">
                                             <div class="form-group">
                                                 <label asp-for="Product.CategoryId"></label>
                                                 <select id="PCategory" asp-for="Product.CategoryId" asp-items="@Model.CategoryList" class="form-control select2">
@@ -150,7 +152,7 @@
                                                 <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
                                             </div>
                                         </div>
-                                        <div class="col-3">
+                                        <div class="col-4">
                                             <div class="form-group">
                                                 <label asp-for="Product.SubCategoryId"></label>
                                                 <select id="PSubCategory" asp-for="Product.SubCategoryId" class="form-control select2">
@@ -195,10 +197,9 @@
                                                                 <img src="@Model.ProductImageList[i].ImageUrl" width="100">
                                                             </td>
                                                             <td>
-                                                                <input asp-for="ProductImageList[i].DefaultImage"
-                                                                       name="isDefault"
+                                                                <input name="isDefault"
                                                                        type="radio"
-                                                                       value="@(i + 1)"
+                                                                       value="@Model.ProductImageList[i].ImageId"
                                                                        checked="@(Model.ProductImageList[i].DefaultImage)" />
                                                             </td>
                                                             <td>
@@ -259,7 +260,7 @@
 
                                 // Nếu đây là ảnh đầu tiên được thêm trong phiên này, tự động chọn làm mặc định
                                 if (rowCount === 1 && $('#imagesPreview tbody tr input[name="isDefault"]:checked').length === 0) {
-                                     radioInput = `<input name="isDefault" type="radio" value="${rowCount}" checked="checked" />`;
+                                        radioInput = `<input name="isDefault" type="radio" value="${rowCount}" checked="checked" />`;
                                 }
 
                                 var row = `<tr id="trow_${rowCount}">
@@ -298,7 +299,7 @@
                             $row.attr('id', 'trow_' + newIndex);
                             $row.find('.imageDeleteBtn').data('id', newIndex);
                             $row.find('input[name="isDefault"]').val(newIndex);
-                            // Cập nhật name cho input hidden của ảnh đã lưu (nếu có)
+                            // Cập nhật name cho input hidden của ảnh đã lưu (Nếu bạn đang sử dụng ProductImageList cho ảnh đã lưu)
                             $row.find('input[name^="ProductImageList"]').each(function() {
                                 var oldName = $(this).attr('name');
                                 var newName = oldName.replace(/\[\d+\]/, `[${index}]`);

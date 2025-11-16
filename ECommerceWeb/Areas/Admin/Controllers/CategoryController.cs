@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using X.PagedList;
 using System.Formats.Tar;
 using X.PagedList.Extensions;
+using ECommerceWeb.Function;
 
 namespace ECommerceWeb.Areas.Admin.Controllers
 {
@@ -13,11 +14,13 @@ namespace ECommerceWeb.Areas.Admin.Controllers
     {
         private readonly EcommerceBtlContext _db;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private ImageHandler imageHandler;
 
         public CategoryController(EcommerceBtlContext db, IWebHostEnvironment webHostEnvironment)
         {
             _db = db;
             _webHostEnvironment = webHostEnvironment;
+            imageHandler = new ImageHandler(_webHostEnvironment);
         }
 
         public IActionResult Index(string searchText, int? page)
@@ -67,35 +70,9 @@ namespace ECommerceWeb.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Địa chỉ của thư mục wwwroot
-                string wwwRootPath = _webHostEnvironment.WebRootPath;
                 if (file != null)
                 {
-                    // Tên file mới = Id độc nhất + đuôi file (.jpg, .png, .jpeg, ...)
-                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    // Địa chỉ của thư mục sẽ được copy ảnh sang
-                    string categoryPath = Path.Combine(wwwRootPath, @"images\category");
-
-                    if (!string.IsNullOrEmpty(obj.CategoryImageUrl))
-                    {
-                        // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                        var oldImagePath = Path.Combine(wwwRootPath, obj.CategoryImageUrl.TrimStart('\\'));
-
-                        // Nếu có rồi thì xóa luôn cái cũ
-                        if (System.IO.File.Exists(oldImagePath))
-                        {
-                            System.IO.File.Delete(oldImagePath);
-                        }
-                    }
-
-                    // Copy ảnh vừa chọn vào thư mục
-                    using (var fileStream = new FileStream(Path.Combine(categoryPath, fileName), FileMode.Create))
-                    {
-                        file.CopyTo(fileStream);
-                    }
-
-                    // Gán ImageUrl = đường dẫn của ảnh vừa copy
-                    obj.CategoryImageUrl = @"\images\category\" + fileName;
+                    obj.CategoryImageUrl = imageHandler.SaveImage(file, @"images\category\", obj.CategoryImageUrl);
                 }
 
                 obj.CreatedDate = DateTime.Now;
@@ -120,17 +97,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                 Category? categoryFromDb = _db.Categories.Include(u => u.SubCategories).FirstOrDefault(u => u.CategoryId == id);
                 if (categoryFromDb != null)
                 {
-                    if (!string.IsNullOrEmpty(categoryFromDb.CategoryImageUrl))
-                    {
-                        // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                        var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, categoryFromDb.CategoryImageUrl.TrimStart('\\'));
-
-                        // Nếu có rồi thì xóa luôn cái cũ
-                        if (System.IO.File.Exists(oldImagePath))
-                        {
-                            System.IO.File.Delete(oldImagePath);
-                        }
-                    }
+                    imageHandler.DeleteImage(categoryFromDb.CategoryImageUrl);
                     _db.Categories.Remove(categoryFromDb);
                     _db.SaveChanges();
                     return Json(new { success = true });
@@ -168,17 +135,7 @@ namespace ECommerceWeb.Areas.Admin.Controllers
                     foreach (var item in items)
                     {
                         Category? categoryFromDb = _db.Categories.Include(u => u.SubCategories).FirstOrDefault(u => u.CategoryId == int.Parse(item));
-                        if (!string.IsNullOrEmpty(categoryFromDb.CategoryImageUrl))
-                        {
-                            // Kiểm tra xem có thư mục cũ đã chọn ở trong wwwroot chưa
-                            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, categoryFromDb.CategoryImageUrl.TrimStart('\\'));
-
-                            // Nếu có rồi thì xóa luôn cái cũ
-                            if (System.IO.File.Exists(oldImagePath))
-                            {
-                                System.IO.File.Delete(oldImagePath);
-                            }
-                        }
+                        imageHandler.DeleteImage(categoryFromDb!.CategoryImageUrl);
                         _db.Categories.Remove(categoryFromDb);
                         _db.SaveChanges();
                     }

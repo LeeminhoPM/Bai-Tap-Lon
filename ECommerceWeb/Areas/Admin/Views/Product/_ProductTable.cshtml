@@ -10,62 +10,62 @@
             <th class="text-center">Ảnh đại diện</th>
             <th class="text-center">Tên sản phẩm</th>
             <th class="text-center">Mô tả ngắn</th>
-            <th class="text-center">Mô tả dài</th>
-            <th class="text-center">Mô tả thêm</th>
             <th class="text-center">Giá</th>
             <th class="text-center">Số lượng</th>
-            <th class="text-center">Đơn vị sản xuất</th>
-            <th class="text-center">Mã danh mục</th>
-            <th class="text-center">Mã danh mục con</th>
-            @* <th class="text-center">Đã bán</th> *@
-            <th class="text-center">Có thể custom</th>
+            <th class="text-center">Kích cỡ</th>
+            <th class="text-center">Màu sắc</th>
+            <th class="text-center">Đơn vị SX</th>
+            <th class="text-center">Danh mục</th>
+            <th class="text-center">DM Con</th>
             <th class="text-center">Kích hoạt</th>
             <th class="text-center">Ngày tạo</th>
-            <th class="text-center"></th>
+            <th class="text-center">Thao tác</th>
         </tr>
     </thead>
     <tbody>
         @if (Model != null && Model.Any())
         {
-            @foreach (var item in Model)
+            var currentPage = Model.PageNumber;
+            var pageSize = Model.PageSize;
+            var startNumber = (currentPage - 1) * pageSize;
+
+            @for (int i = 0; i < Model.Count; i++)
             {
+                var item = Model[i];
                 <tr id="trow-@item.ProductId">
                     <td>
                         <input type="checkbox" class="select-input" value="@item.ProductId" />
                     </td>
-                    <td class="text-center">@item.ProductId</td>
+                    <td class="text-center">@(startNumber + i + 1)</td>
                     <td class="text-center">
                         @{
-                            var defaultImage = item.ProductImages.FirstOrDefault(x => x.DefaultImage == true);
+                            var defaultImage = item.ProductImages.FirstOrDefault(x => x.DefaultImage) ?? item.ProductImages.FirstOrDefault();
                         }
                         <img width="50" src="@(defaultImage != null ? defaultImage.ImageUrl : "/images/no-image.png")" />
                     </td>
-                    <td class="text-center">@item.ProductName</td>
-                    <td class="text-center">@item.ShortDescription</td>
-                    <td class="text-center">@item.LongDescription</td>
-                    <td class="text-center">@item.AdditionalDescription</td>
-                    <td class="text-center">@item.Price</td>
+                    <td class="text-left">@item.ProductName</td>
+                    <td class="text-left">@(item.ShortDescription != null && item.ShortDescription.Length > 50 ? item.ShortDescription.Substring(0, 50) + "..." : item.ShortDescription)</td>
+                    <td class="text-right">@item.Price.ToString("N0") VNĐ</td>
                     <td class="text-center">@item.Quantity</td>
+
+                    <td class="text-center">@item.Size</td>
+                    <td class="text-center">@item.Color</td>
+
                     <td class="text-center">@item.CompanyName</td>
                     <td class="text-center">@item.CategoryId</td>
                     <td class="text-center">@item.SubCategoryId</td>
-                    @* <td class="text-center">@item.Sold</td> *@
+
                     <td class="text-center">
-                        <a data-id="@item.ProductId" class="my-active-btn">
-                            @(item.IsCustomized? Html.Raw("<i class=\"bi bi-check-lg text-success\" style=\" -webkit-text-stroke: 1px; \"></i>") : Html.Raw("<i class=\"bi bi-x-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>"))
-                        </a>
-                    </td>
-                    <td class="text-center">
-                        <a data-id="@item.ProductId" class="my-active-btn">
+                        <a data-id="@item.ProductId" class="my-active-btn" data-type="IsActive">
                             @(item.IsActive? Html.Raw("<i class=\"bi bi-check-lg text-success\" style=\" -webkit-text-stroke: 1px; \"></i>") : Html.Raw("<i class=\"bi bi-x-lg text-danger\" style=\" -webkit-text-stroke: 1px; \"></i>"))
                         </a>
                     </td>
                     <td class="text-center">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
                     <td class="text-center">
-                        <a asp-action="Upsert" asp-route-id="@item.ProductId" class="btn btn-primary">
+                        <a asp-action="Upsert" asp-route-id="@item.ProductId" class="btn btn-sm btn-primary">
                             <i class="bi bi-pencil-square"></i> Sửa
                         </a>
-                        <a asp-action="Index" data-id="@item.ProductId" class="btn btn-danger my-btn-delete">
+                        <a data-id="@item.ProductId" class="btn btn-sm btn-danger my-btn-delete">
                             <i class="bi bi-trash"></i> Xóa
                         </a>
                     </td>
@@ -75,7 +75,7 @@
         else
         {
             <tr>
-                <td colspan="4">Không có bản ghi nào</td>
+                <td colspan="17" class="text-center">Không tìm thấy sản phẩm nào.</td>
             </tr>
         }
     </tbody>

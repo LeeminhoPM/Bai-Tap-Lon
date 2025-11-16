@@ -55,7 +55,7 @@ public partial class Product
     [DisplayName("Danh mục")]
     public int CategoryId { get; set; }
 
-    [Required(ErrorMessage = "Chọn mã danh mục con")]
+    [ValidateNever]
     [DisplayName("Danh mục con")]
     public int SubCategoryId { get; set; }
 
